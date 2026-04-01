@@ -1,0 +1,26 @@
+info:
+  name: create hostel
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:5000/api/hostel/createHostel
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzQ1NDczMDEsImV4cCI6MTc3NDU0NzkwMX0.GwupwrCdfJB_LpTmk7NtKmy1ODMs4XcDmioRWdjZPw8
+  body:
+    type: json
+    data: |-
+      {
+        "name":"out reach",
+        "location":"agriculture university",
+        "totalRooms":"200"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

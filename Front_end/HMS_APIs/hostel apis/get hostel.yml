@@ -1,0 +1,18 @@
+info:
+  name: get hostel
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:5000/api/hostel/getHostel
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUwMjM1NTUsImV4cCI6MTc3NTAyNTM1NX0.NXLVtk7seppFFsSyTbJaWz9-71OBoB8dn0wj0h1MgOU
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

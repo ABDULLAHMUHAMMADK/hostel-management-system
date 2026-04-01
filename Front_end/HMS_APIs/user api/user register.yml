@@ -1,0 +1,31 @@
+info:
+  name: user register
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:5000/api/users/
+  body:
+    type: json
+    data: |-
+      // {"name":"umar",
+      // "email":"umar@gmail.com",
+      // "password":"1234abcd",
+      //  "role":"warden"
+      //  }
+
+
+      {"name":"zaid",
+      "email":"zaid@gmail.com",
+      "password":"1234abcd",
+       "role":"student",
+       "hostelId":"69c571dfc002a9e6634dfe89"
+       }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
