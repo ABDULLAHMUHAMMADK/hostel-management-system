@@ -10,11 +10,22 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "warden", "student"],
       default: "student",
     },
-    hostelId: { 
+    hostelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hostel",
       require: true,
     },
+
+    stripeCustomerId: {
+      type: String,
+    },
+    monthlyFee: { type: Number, default: 2000 },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid"],
+      default: "Pending",
+    },
+    lastPaymentDate: { type: Date },
   },
   {
     timestamps: true,

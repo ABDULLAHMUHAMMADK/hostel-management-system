@@ -9,46 +9,32 @@ const PORT = process.env.PORT;
 import { User } from "./models/user.js";
 import { Hostel } from "./models/hostel.js";
 
-
-
-
-
 app.use(express.json());
 
 dbConnection();
 
-
-
-
-
 app.use("/api/users", userRoutes);
 app.use("/api/hostel", hostelRoutes);
 
-
-
 app.get("/data/user", async (req, res) => {
+  try {
+    const data = await User.find();
 
-    try {
-        const data = await User.find()
-
-        res.json({ data })
-    } catch (error) {
-        console.log(error.message)
-    }
-
-})
+    res.json({ message: `total users is ${data.length}`, data });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
 
 app.get("/data/hostel", async (req, res) => {
+  try {
+    const data = await Hostel.find();
 
-    try {
-        const data = await Hostel.find()
-
-        res.json({ data })
-    } catch (error) {
-        console.log(error.message)
-    }
-
-})
+    res.json({ message: `total users is ${data.length}`, data });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

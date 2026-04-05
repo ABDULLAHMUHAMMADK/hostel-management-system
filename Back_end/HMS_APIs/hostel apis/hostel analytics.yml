@@ -1,0 +1,18 @@
+info:
+  name: hostel analytics
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: http://localhost:5000/api/hostel/analytics
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUyMTk1NDEsImV4cCI6MTc3NTIyMTM0MX0.wTxIt7IF2GYHoTWQDj47JI_-OulIza9MKyrT8kzLW_o
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

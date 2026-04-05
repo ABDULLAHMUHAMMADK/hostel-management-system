@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-
-
 const hostelSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -14,6 +12,12 @@ const hostelSchema = new mongoose.Schema({
   },
   totalRooms: {
     type: Number,
+    required: true,
+    default: 0,
+  },
+  totalCapacity: {
+    type: Number,
+    required: true,
     default: 0,
   },
   warden: {
@@ -32,7 +36,5 @@ const hostelSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-
-
 
 export const Hostel = mongoose.model("Hostel", hostelSchema);

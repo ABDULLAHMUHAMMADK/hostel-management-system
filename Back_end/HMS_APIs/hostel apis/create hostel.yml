@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/hostel/createHostel
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzQ1NDczMDEsImV4cCI6MTc3NDU0NzkwMX0.GwupwrCdfJB_LpTmk7NtKmy1ODMs4XcDmioRWdjZPw8
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Y2VhZjk0OGJlNzY0NGZjMThiMmQ1YiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUxNTMwODcsImV4cCI6MTc3NTE1NDg4N30.2PpiUwYYcLKvaezpJ_ONf1NkmPypcrL8d5ZoNqU5k4I
   body:
     type: json
     data: |-

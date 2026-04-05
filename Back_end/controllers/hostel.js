@@ -31,25 +31,44 @@ export const createHostel = async (req, res) => {
 
 export const getMyHostel = async (req, res) => {
   try {
-    const wardanId = req.user._id;
+    const wardenId = req.user._id;
 
-    const hostel = await Hostel.findOne({ warden: wardanId })
-      .populate("students", "name email")
-      .populate("warden", "name email");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
+    const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
       return res
         .status(400)
         .json({ message: "You did not create a hostel yet", success: false });
     }
 
-    if (hostel.students === []) {
-      await Hostel.updateOne({ students: "no students yet" });
-    }
+    const totalStudents = hostel.students.length;
+    const totalPages = Math.ceil(totalStudents / limit);
 
-    return res
-      .status(200)
-      .json({ message: "heres the detail", data: hostel, success: true });
+    const getStudents = await hostel.populate([
+      {
+        path: "students",
+        options: { limit: limit, skip: skip },
+        select: "name email",
+      },
+      {
+        path: "warden",
+        select: "name email",
+      },
+    ]);
+    if (totalStudents === 0 || page > totalPages) {
+      return res.status(400).json({ message: "no page found", success: false });
+    }
+    return res.status(200).json({
+      message: `heres the detail and the total students is ${hostel.students.length}`,
+      totalPages: totalPages,
+
+      currentPage: page,
+      data: getStudents,
+      success: true,
+    });
   } catch (error) {
     return res.status(400).json({ message: error.message, success: false });
   }
@@ -122,6 +141,9 @@ export const searchStudent = async (req, res) => {
     const { name } = req.query;
     const wardenId = req.user._id;
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
     if (!name) {
       return res
         .status(400)
@@ -133,6 +155,10 @@ export const searchStudent = async (req, res) => {
       match: {
         name: { $regex: name, $options: "i" },
       },
+      options: {
+        limit: limit,
+        skip: skip,
+      },
       select: "name email",
     });
 
@@ -142,14 +168,48 @@ export const searchStudent = async (req, res) => {
         .json({ message: "Hotel not found", success: false });
     }
 
-    return res
-      .status(200)
-      .json({
-        message: `${hostel.students.length} students found`,
-        data: hostel.students,
-        success: true,
-      });
+    return res.status(200).json({
+      message: `${hostel.students.length} students found`,
+      data: hostel.students,
+      currentPage: page,
+      success: true,
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+export const getHostelAnalytics = async (req, res) => {
+  try {
+    const wardenId = req.user;
+
+    const hostel = await Hostel.findOne({ warden: wardenId });
+
+    if (!hostel) {
+      return res
+        .status(404)
+        .json({ message: "Hostel not found", success: false });
+    }
+
+    const totalBeds = hostel.totalCapacity;
+    const totalRooms = hostel.totalRooms;
+    const currentStudent = hostel.students.length;
+
+    const availableBeds = totalBeds - currentStudent;
+    const occupancyRate = ((currentStudent / totalBeds) * 100).toFixed(2);
+    return res.status(200).json({
+      message: "Analytics fetched successfully",
+      Analytics: {
+        hostelname: hostel.name,
+        totalRooms: totalRooms,
+        totaBeds: totalBeds,
+        occupiedBeds: currentStudent,
+        availableBeds: availableBeds,
+        hostelOccupancy: `${occupancyRate}%`,
+        status: availableBeds > 0 ? "Available" : "Full",
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message, success: false });
   }
 };

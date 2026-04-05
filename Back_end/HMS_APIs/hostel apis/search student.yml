@@ -5,10 +5,14 @@ info:
 
 http:
   method: GET
-  url: http://localhost:5000/api/hostel/search-student
+  url: http://localhost:5000/api/hostel/search-student?name=mu
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUwMjM1NTUsImV4cCI6MTc3NTAyNTM1NX0.NXLVtk7seppFFsSyTbJaWz9-71OBoB8dn0wj0h1MgOU
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUxNTUxODgsImV4cCI6MTc3NTE1Njk4OH0.57xy0_wtl-TdgbHteNe7h3ero9Env8qRP6pNrqWbTbk
+  params:
+    - name: name
+      value: mu
+      type: query
   auth: inherit
 
 settings:

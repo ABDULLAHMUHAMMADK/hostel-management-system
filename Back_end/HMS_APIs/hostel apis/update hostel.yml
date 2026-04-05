@@ -8,13 +8,16 @@ http:
   url: http://localhost:5000/api/hostel/update-hostel
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzQ4MDUwMDksImV4cCI6MTc3NDgwNjgwOX0.NbcUw7N7MyNzyw1C16tKcmVGWVdZhI3eaPVQ7fD-ivk
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUyMjA3ODIsImV4cCI6MTc3NTIyMjU4Mn0.n4qabTkVCvMSM9lQLIBcvnLFPjqQYtzpRUfmuqx61vg
   body:
     type: json
     data: |-
-      { "name": "fakhr un nishah",
+      { 
+        "name": "fakhr un nishah",
           "location": "shin Qamar",
-          "totalRooms": 300
+          "totalRooms": 8,
+        "totalCapacity":16
+        
       }
   auth: inherit
 

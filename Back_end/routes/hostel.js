@@ -5,6 +5,7 @@ import {
   removeStudent,
   updateHostel,
   searchStudent,
+  getHostelAnalytics,
 } from "../controllers/hostel.js";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
 const routes = express.Router();
@@ -18,7 +19,8 @@ routes.put(
   removeStudent,
 );
 routes.put("/update-hostel", verifyUser, authorize(["warden"]), updateHostel);
-routes.get("/search-student", verifyUser, authorize(["warden"]),searchStudent);
+routes.get("/search-student", verifyUser, authorize(["warden"]), searchStudent);
 
+routes.get("/analytics", verifyUser, authorize(["warden"]),getHostelAnalytics);
 
 export default routes;

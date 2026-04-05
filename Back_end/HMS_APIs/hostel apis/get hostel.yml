@@ -5,10 +5,17 @@ info:
 
 http:
   method: GET
-  url: http://localhost:5000/api/hostel/getHostel
+  url: http://localhost:5000/api/hostel/getHostel?page=1&limit=10
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUwMjM1NTUsImV4cCI6MTc3NTAyNTM1NX0.NXLVtk7seppFFsSyTbJaWz9-71OBoB8dn0wj0h1MgOU
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUyMTM1NTQsImV4cCI6MTc3NTIxNTM1NH0.CoLTADiHay7o137a0U1BOzsHMfwzxqTbcRrRFpx8L30
+  params:
+    - name: page
+      value: "1"
+      type: query
+    - name: limit
+      value: "10"
+      type: query
   auth: inherit
 
 settings:
