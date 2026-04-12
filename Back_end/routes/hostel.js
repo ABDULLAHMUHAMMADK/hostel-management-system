@@ -6,6 +6,8 @@ import {
   updateHostel,
   searchStudent,
   getHostelAnalytics,
+  createCheckoutSession,
+  stripeWebhook,
 } from "../controllers/hostel.js";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
 const routes = express.Router();
@@ -20,7 +22,12 @@ routes.put(
 );
 routes.put("/update-hostel", verifyUser, authorize(["warden"]), updateHostel);
 routes.get("/search-student", verifyUser, authorize(["warden"]), searchStudent);
-
-routes.get("/analytics", verifyUser, authorize(["warden"]),getHostelAnalytics);
+routes.get("/analytics", verifyUser, authorize(["warden"]), getHostelAnalytics);
+routes.post(
+  "/pay-fee",
+  verifyUser,
+  authorize(["student"]),
+  createCheckoutSession,
+);
 
 export default routes;

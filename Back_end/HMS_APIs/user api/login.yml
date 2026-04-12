@@ -9,7 +9,7 @@ http:
   body:
     type: json
     data: |-
-      {"email":"abd@gmail.com",
+      {"email":"ZAID@gmail.com",
       "password":"1234abcd"}
   auth: inherit
 

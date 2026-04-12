@@ -1,6 +1,9 @@
 import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
 
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 export const createHostel = async (req, res) => {
   try {
     const { name, location, totalRooms } = req.body;
@@ -212,4 +215,80 @@ export const getHostelAnalytics = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message, success: false });
   }
+};
+
+export const createCheckoutSession = async (req, res) => {
+  try {
+    const student = req.user;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+
+      success_url: "http://127.0.0.1:5500/succes.html",
+      cancel_url: "http://127.0.0.1:5500/reject.html",
+
+      customer_email: student.email,
+
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Hostel Monthely Fee",
+              description: `payment for student ${student.name}`,
+            },
+            unit_amount: 200 * 100,
+          },
+          quantity: 1,
+        },
+      ],
+
+      metadata: { userId: student._id.toString() },
+    });
+
+    return res.status(200).json({
+      message: "Checkout session created! Redirecting to payment...",
+      success: true,
+      url: session.url,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+export const stripeWebhook = async (req, res) => {
+
+  console.log("stripewebhook is running")
+  const sign = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sign,
+      process.env.STRIPE_WEBHOOK_SECRET,
+    );
+
+    console.log(event.type);
+  } catch (error) {
+    return res.status(400).json({ error: error.message, success: false });
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const studentId = session.metadata.userId;
+    console.log("Updating database for student:", studentId);
+
+    await User.findByIdAndUpdate(studentId, {
+      paymentStatus: "paid",
+      lastPaymentDate: new Date(),
+    });
+
+    
+  }
+   res
+      .status(200)
+      .json({ message: "payment successfully", recevied: true });
+      
 };

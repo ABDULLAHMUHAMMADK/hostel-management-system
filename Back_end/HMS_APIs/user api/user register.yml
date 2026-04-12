@@ -9,18 +9,18 @@ http:
   body:
     type: json
     data: |-
-      {"name":"sadam",
-      "email":"sadam@gmail.com",
+      {"name":"M Abdullah",
+      "email":"abd@gmail.com",
       "password":"1234abcd",
        "role":"warden"
        }
 
 
-      // {"name":"hamdan",
-      // "email":"hamdan@gmail.com",
+      // {"name":"aitizaz",
+      // "email":"aitizaz@gmail.com",
       // "password":"1234abcd",
       //  "role":"student",
-      //  "hostelId":"69c571dfc002a9e6634dfe89"
+      //  "hostelId":"69ceb0098be7644fc18b2d5f"
       //  }
   auth: inherit
 

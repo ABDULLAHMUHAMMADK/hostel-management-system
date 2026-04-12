@@ -9,6 +9,10 @@ const PORT = process.env.PORT;
 import { User } from "./models/user.js";
 import { Hostel } from "./models/hostel.js";
 
+import { stripeWebhook } from "./controllers/hostel.js";
+
+app.post("/api/hostel/webhook", express.raw({ type: "application/json" }),stripeWebhook);
+
 app.use(express.json());
 
 dbConnection();
