@@ -1,15 +1,25 @@
 import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
 import { generateToken } from "../utils/Token.js";
+import { Room } from "../models/room.js";
 import bcrypt from "bcryptjs";
 
 export const userRegister = async (req, res) => {
   try {
-    const { name, email, password, role, hostelId } = req.body;
+    const { name, email, password, role, hostelId, roomId } = req.body;
 
     if (!name || !email || !password) {
       return res.json({
         message: "please fill all the feild properley",
+        success: false,
+      });
+    }
+
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({
+        message: "User Already Exist",
         success: false,
       });
     }
@@ -26,8 +36,6 @@ export const userRegister = async (req, res) => {
       });
     }
 
-
-    
     if (role === "student" && !linkedHostel) {
       return res.status(400).json({
         message: "Students must select a hostel to register",
@@ -35,13 +43,17 @@ export const userRegister = async (req, res) => {
       });
     }
 
-    const userExists = await User.findOne({ email });
+    if (role === "student" && !roomId) {
+      return res.status(400).json({ message: "Please select a room." });
+    }
 
-    if (userExists) {
-      return res.status(400).json({
-        message: "User Already Exist",
-        success: false,
-      });
+    const room = await Room.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ message: "Room not found." });
+    }
+
+    if (room.occupants.length >= room.maxCapacity) {
+      return res.status(400).json({ message: "Room is already full!" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -53,20 +65,23 @@ export const userRegister = async (req, res) => {
       role: role || "student",
       hostelId: role === "warden" ? null : linkedHostel._id,
       password: hashPassword,
+      roomId: role === "student" ? roomId : null,
     });
 
-    if (role === "student") {
+    if (role === "student" && newUser) {
       linkedHostel.students.push(newUser._id);
       await linkedHostel.save();
-    }
 
-    if (newUser) {
-      return res.status(201).json({
-        message: "the user regester successfully",
-        Data: newUser,
-        success: true,
+      await Room.findByIdAndUpdate(roomId, {
+        $push: { occupants: newUser._id },
       });
     }
+
+    return res.status(201).json({
+      message: "the user regester successfully",
+      Data: newUser,
+      success: true,
+    });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({

@@ -1,0 +1,27 @@
+info:
+  name: initialize-rooms
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: http://localhost:5000/api/hostel/initialize-rooms
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzY3MTEwNDAsImV4cCI6MTc3NjcxMjg0MH0.pccxFKezvr77a5N9GA4cwdGSbW32g5m6ZQFy7d2RTwE
+  body:
+    type: json
+    data: |-
+      {
+        "roomBatches":[
+          {"start":1,"end":10,"type":"single"},
+          {"start":11,"end":20,"type":"2-seater"}
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

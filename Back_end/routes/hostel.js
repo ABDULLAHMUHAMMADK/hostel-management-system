@@ -8,6 +8,7 @@ import {
   getHostelAnalytics,
   createCheckoutSession,
   stripeWebhook,
+  initializeRooms,
 } from "../controllers/hostel.js";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
 const routes = express.Router();
@@ -29,5 +30,7 @@ routes.post(
   authorize(["student"]),
   createCheckoutSession,
 );
+
+routes.post("/initialize-rooms", verifyUser, authorize(["warden"]),initializeRooms);
 
 export default routes;

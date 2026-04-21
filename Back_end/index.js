@@ -8,10 +8,15 @@ import { dbConnection } from "./config/connection.js";
 const PORT = process.env.PORT;
 import { User } from "./models/user.js";
 import { Hostel } from "./models/hostel.js";
+import { Room } from "./models/room.js";
 
 import { stripeWebhook } from "./controllers/hostel.js";
 
-app.post("/api/hostel/webhook", express.raw({ type: "application/json" }),stripeWebhook);
+app.post(
+  "/api/hostel/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook,
+);
 
 app.use(express.json());
 
@@ -35,6 +40,15 @@ app.get("/data/hostel", async (req, res) => {
     const data = await Hostel.find();
 
     res.json({ message: `total users is ${data.length}`, data });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+app.get("/data/room", async (req, res) => {
+  try {
+    const data = await Room.find();
+
+    res.json({ message: `total room is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
   }

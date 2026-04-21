@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
       ref: "Hostel",
       require: true,
     },
+    roomId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Room",
+      default: null,
+    },
 
     stripeCustomerId: {
       type: String,

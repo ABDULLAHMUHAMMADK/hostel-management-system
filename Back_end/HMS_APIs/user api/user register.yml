@@ -9,19 +9,19 @@ http:
   body:
     type: json
     data: |-
-      {"name":"M Abdullah",
-      "email":"abd@gmail.com",
-      "password":"1234abcd",
-       "role":"warden"
-       }
-
-
-      // {"name":"aitizaz",
-      // "email":"aitizaz@gmail.com",
+      // {"name":"M Abdullah",
+      // "email":"abd@gmail.com",
       // "password":"1234abcd",
-      //  "role":"student",
-      //  "hostelId":"69ceb0098be7644fc18b2d5f"
+      //  "role":"warden"
       //  }
+
+
+      {"name":"hassen",
+      "email":"hassen@gmail.com",
+      "password":"1234abcd",
+       "role":"student"
+       "hostelId":"69ceb0098be7644fc18b2d5f"
+       }
   auth: inherit
 
 settings:

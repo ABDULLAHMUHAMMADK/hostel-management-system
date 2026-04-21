@@ -18,7 +18,6 @@ export const verifyUser = async (req, res, next) => {
       next();
     } catch (error) {
       console.log(error.message);
-      console.log("hello");
       return res.status(400).json({ message: error.message, success: false });
     }
   } else {

@@ -1,5 +1,6 @@
 import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
+import { Room } from "../models/room.js";
 
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -258,8 +259,7 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const stripeWebhook = async (req, res) => {
-
-  console.log("stripewebhook is running")
+  console.log("stripewebhook is running");
   const sign = req.headers["stripe-signature"];
   let event;
 
@@ -284,11 +284,46 @@ export const stripeWebhook = async (req, res) => {
       paymentStatus: "paid",
       lastPaymentDate: new Date(),
     });
-
-    
   }
-   res
-      .status(200)
-      .json({ message: "payment successfully", recevied: true });
-      
+  res.status(200).json({ message: "payment successfully", recevied: true });
+};
+
+export const initializeRooms = async (req, res) => {
+  const hostelId = req.user.hostelId;
+
+  const { roomBatches } = req.body;
+
+   
+
+  const capacityMap = {
+    "single": 1000,
+    "2-seater": 2,
+    "3-seater": 3,
+    "4-seater": 4,
+    "5-seater": 5,
+  };
+  const roomsToCreate = [];
+
+  roomBatches.forEach((batch) => {
+
+    for (let i = batch.start; i <= batch.end; i++) {
+      roomsToCreate.push({
+        roomNumber: i.toString(),
+        type: batch.type,
+        maxCapicity: capacityMap[batch.type],
+        hostelId: hostelId,
+      });
+    }
+  });
+
+  try {
+    const createdRooms = await Room.insertMany(roomsToCreate);
+    res.status(201).json({
+      success: true,
+      message: `${createdRooms.length} rooms created!`,
+      data: createdRooms,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message, success: false });
+  }
 };
