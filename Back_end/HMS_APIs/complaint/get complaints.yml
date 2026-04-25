@@ -1,0 +1,18 @@
+info:
+  name: get complaints
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:5000/api/compliant/get-complaint
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcwOTAzNjQsImV4cCI6MTc3NzA5MjE2NH0.J4a-BpuaM68JHyeGm4QUbsBQp6PixA7axtTLw4R4cqY
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

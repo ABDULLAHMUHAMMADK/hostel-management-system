@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:5000/api/users/
+  url: http://localhost:5000/api/users/'
   body:
     type: json
     data: |-
@@ -16,11 +16,12 @@ http:
       //  }
 
 
-      {"name":"hassen",
-      "email":"hassen@gmail.com",
+      {"name":"badshah",
+      "email":"badshah@gmail.com",
       "password":"1234abcd",
-       "role":"student"
-       "hostelId":"69ceb0098be7644fc18b2d5f"
+       "role":"student",
+       "hostelId":"69c571dfc002a9e6634dfe89",
+       "roomId":"69e67aa2a4958d60f42d6d24"
        }
   auth: inherit
 

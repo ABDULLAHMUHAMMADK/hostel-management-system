@@ -20,6 +20,11 @@ const roomSchema = new mongoose.Schema(
       ref: "Hostel",
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["available", "full"],
+      default: "available",
+    },
     occupants: [
       {
         type: mongoose.Schema.ObjectId,
@@ -32,4 +37,4 @@ const roomSchema = new mongoose.Schema(
 
 roomSchema.index({ roomNumber: 1, hostelId: 1 }, { unique: true });
 
-export const Room = mongoose.model("Room",roomSchema)
+export const Room = mongoose.model("Room", roomSchema);

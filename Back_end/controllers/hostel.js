@@ -70,6 +70,8 @@ export const getMyHostel = async (req, res) => {
       totalPages: totalPages,
 
       currentPage: page,
+      // warden: getStudents.warden,
+      // students: getStudents.students,
       data: getStudents,
       success: true,
     });
@@ -95,7 +97,15 @@ export const removeStudent = async (req, res) => {
     await Hostel.findByIdAndUpdate(hostel._id, {
       $pull: { students: studentId },
     });
-    await User.findByIdAndUpdate(studentId, { hostelId: null });
+
+    const user = await User.findByIdAndUpdate(studentId, { hostelId: null });
+
+    console.log(user)
+
+    await Room.findByIdAndUpdate(user.roomId, {
+      $pull: { occupants: studentId },
+      $set:{status:"available"}
+    });
 
     return res
       .status(200)
@@ -122,7 +132,6 @@ export const updateHostel = async (req, res) => {
       { new: true },
     );
 
-    // console.log(updateHostel);
 
     if (!updateHostel) {
       return res
@@ -293,10 +302,8 @@ export const initializeRooms = async (req, res) => {
 
   const { roomBatches } = req.body;
 
-   
-
   const capacityMap = {
-    "single": 1000,
+    single: 1,
     "2-seater": 2,
     "3-seater": 3,
     "4-seater": 4,
@@ -305,7 +312,6 @@ export const initializeRooms = async (req, res) => {
   const roomsToCreate = [];
 
   roomBatches.forEach((batch) => {
-
     for (let i = batch.start; i <= batch.end; i++) {
       roomsToCreate.push({
         roomNumber: i.toString(),

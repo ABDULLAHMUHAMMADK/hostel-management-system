@@ -1,0 +1,24 @@
+info:
+  name: create complaint
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:5000/api/complaint/create-complaint
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzY0ZmJkMmNjNjczYTFhNGU4MTg0MSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc3MDgxMzA4LCJleHAiOjE3NzcwODMxMDh9.Hz0jAUIOBXK98Ol4qlJ8Xz-2B1Q9ItXy8peE67Zj9HY
+  body:
+    type: json
+    data: |-
+      {"title":"complaint for light kharab",
+      "description":"in our we have a small issue since from 2 days our rooom light is not working which makes us difficult to study at late night"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
