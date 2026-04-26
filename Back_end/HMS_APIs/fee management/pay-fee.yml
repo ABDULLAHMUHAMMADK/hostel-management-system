@@ -1,0 +1,25 @@
+info:
+  name: pay-fee
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: http://localhost:5000/api/fee/pay-fee
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Y2NiYTlmMDk0ZWFkNThmZWJiZTYzZSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc3MTY1NTMwLCJleHAiOjE3NzcxNjczMzB9.yrvxpe86X4csPMM04Q5KUy4QWpPRikxl-LcdCFo5TLs
+  body:
+    type: json
+    data: |-
+      {
+        "feeId": "69ed1e732ce95df523990fa5",
+        "amount": 2000
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

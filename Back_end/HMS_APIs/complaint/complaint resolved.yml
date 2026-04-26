@@ -1,0 +1,15 @@
+info:
+  name: complaint resolved
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: http://localhost:5000/api/compliant/resolve/69ec49e9b141a7b93a82e6f2
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const complaintSchema = new mongoose.Schema(
+const feeSchema = new mongoose.Schema(
   {
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
       required: true,
     },
     hostelId: {
@@ -12,21 +12,21 @@ const complaintSchema = new mongoose.Schema(
       ref: "Hostel",
       required: true,
     },
-    title: {
-      type: String,
+    amount: {
+      type: Number,
       required: true,
     },
-    description: {
+    month: {
       type: String,
       required: true,
     },
     status: {
       type: String,
-      enum: ["pending", "resolved"],
+      enum: ["pending", "paid"],
       default: "pending",
     },
   },
   { timestamps: true }
 );
 
-export const Complaint = mongoose.model("Complaint", complaintSchema);
+export const Fee = mongoose.model("Fee", feeSchema);

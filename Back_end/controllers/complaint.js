@@ -24,6 +24,10 @@ export const createComplaint = async (req, res) => {
   }
 };
 
+
+
+
+
 export const getHostelComplaints = async (req, res) => {
   try {
     const { hostelId } = req.user;
@@ -38,9 +42,14 @@ export const getHostelComplaints = async (req, res) => {
   }
 };
 
+
+
+
+
 export const resolveComplaint = async (req, res) => {
   const { complaintId } = req.params;
 
+  
   try {
     const updatedComplaint = await Complaint.findByIdAndUpdate(
       complaintId,

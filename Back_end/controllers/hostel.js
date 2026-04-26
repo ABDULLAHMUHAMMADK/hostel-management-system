@@ -1,6 +1,7 @@
 import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
 import { Room } from "../models/room.js";
+import { Fee } from "../models/fee.js";
 
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -100,11 +101,11 @@ export const removeStudent = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(studentId, { hostelId: null });
 
-    console.log(user)
+    console.log(user);
 
     await Room.findByIdAndUpdate(user.roomId, {
       $pull: { occupants: studentId },
-      $set:{status:"available"}
+      $set: { status: "available" },
     });
 
     return res
@@ -131,7 +132,6 @@ export const updateHostel = async (req, res) => {
       updateData,
       { new: true },
     );
-
 
     if (!updateHostel) {
       return res
@@ -227,75 +227,82 @@ export const getHostelAnalytics = async (req, res) => {
   }
 };
 
-export const createCheckoutSession = async (req, res) => {
-  try {
-    const student = req.user;
+// export const createCheckoutSession = async (req, res) => {
+//   try {
+//     const student = req.user;
+//     const { amount, feeId } = req.body;
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
+//     const session = await stripe.checkout.sessions.create({
+//       payment_method_types: ["card"],
+//       mode: "payment",
 
-      success_url: "http://127.0.0.1:5500/succes.html",
-      cancel_url: "http://127.0.0.1:5500/reject.html",
+//       success_url: "http://127.0.0.1:5500/succes.html",
+//       cancel_url: "http://127.0.0.1:5500/reject.html",
 
-      customer_email: student.email,
+//       customer_email: student.email,
 
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Hostel Monthely Fee",
-              description: `payment for student ${student.name}`,
-            },
-            unit_amount: 200 * 100,
-          },
-          quantity: 1,
-        },
-      ],
+//       line_items: [
+//         {
+//           price_data: {
+//             currency: "usd",
+//             product_data: {
+//               name: "Hostel Monthely Fee",
+//               description: `payment for student ${student.name}`,
+//             },
+//             unit_amount: amount * 100,
+//           },
+//           quantity: 1,
+//         },
+//       ],
 
-      metadata: { userId: student._id.toString() },
-    });
+//       metadata: { userId: student._id.toString(), feeId: feeId.toString() },
+//     });
 
-    return res.status(200).json({
-      message: "Checkout session created! Redirecting to payment...",
-      success: true,
-      url: session.url,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
-  }
-};
+//     return res.status(200).json({
+//       message: "Checkout session created! Redirecting to payment...",
+//       success: true,
+//       url: session.url,
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ message: error.message, success: false });
+//   }
+// };
 
-export const stripeWebhook = async (req, res) => {
-  console.log("stripewebhook is running");
-  const sign = req.headers["stripe-signature"];
-  let event;
+// export const stripeWebhook = async (req, res) => {
+//   console.log("stripewebhook is running");
+//   const sign = req.headers["stripe-signature"];
+//   let event;
 
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sign,
-      process.env.STRIPE_WEBHOOK_SECRET,
-    );
+//   try {
+//     event = stripe.webhooks.constructEvent(
+//       req.body,
+//       sign,
+//       process.env.STRIPE_WEBHOOK_SECRET,
+//     );
 
-    console.log(event.type);
-  } catch (error) {
-    return res.status(400).json({ error: error.message, success: false });
-  }
+//     console.log(event.type);
+//   } catch (error) {
+//     return res.status(400).json({ error: error.message, success: false });
+//   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const studentId = session.metadata.userId;
-    console.log("Updating database for student:", studentId);
+//   if (event.type === "checkout.session.completed") {
+//     const session = event.data.object;
+//     const studentId = session.metadata.userId;
+//     const feeId = session.metadata.feeId;
+//     console.log("Updating database for student:", studentId);
 
-    await User.findByIdAndUpdate(studentId, {
-      paymentStatus: "paid",
-      lastPaymentDate: new Date(),
-    });
-  }
-  res.status(200).json({ message: "payment successfully", recevied: true });
-};
+//     await Fee.findByIdAndUpdate(feeId,{
+//       $set:{status:"paid"}
+//     })
+   
+   
+//     await User.findByIdAndUpdate(studentId, {
+//       paymentStatus: "paid",
+//       lastPaymentDate: new Date(),
+//     });
+//   }
+//   res.status(200).json({ message: "payment successfully", recevied: true });
+// };
 
 export const initializeRooms = async (req, res) => {
   const hostelId = req.user.hostelId;

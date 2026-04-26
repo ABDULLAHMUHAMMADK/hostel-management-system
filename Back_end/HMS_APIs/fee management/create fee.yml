@@ -1,0 +1,27 @@
+info:
+  name: create fee
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:5000/api/fee/create
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcxMTUwMzgsImV4cCI6MTc3NzExNjgzOH0.HAqH6zOD0EoPLsA0SJ6pogkq7ZbbBr9wRFWNk8g_afQ
+  body:
+    type: json
+    data: |-
+      {
+        "studentId": "69e7c7fd38502d3a77aa3445", 
+        "hostelId": "69c571dfc002a9e6634dfe89",
+        "amount": 250,
+        "month": "May 2026"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

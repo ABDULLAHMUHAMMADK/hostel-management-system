@@ -1,0 +1,26 @@
+info:
+  name: generate fee
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:5000/api/fee/generate-fee
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcxNDczNjQsImV4cCI6MTc3NzE0OTE2NH0.gBTHfRIBaBRrrrb9vOo4_1fpxjjExvSdxf3YBJMfZ1k
+  body:
+    type: json
+    data: |-
+      {
+        "hostelId":"69c571dfc002a9e6634dfe89",
+        "amount":"2000",
+        "month":"january"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
