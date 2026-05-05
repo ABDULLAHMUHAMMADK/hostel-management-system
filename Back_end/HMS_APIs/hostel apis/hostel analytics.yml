@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/hostel/analytics
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUyMTk1NDEsImV4cCI6MTc3NTIyMTM0MX0.wTxIt7IF2GYHoTWQDj47JI_-OulIza9MKyrT8kzLW_o
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc1NTU3NTMsImV4cCI6MTc3NzU1NzU1M30.BR80i7a12QgR68a7Kot8qbG2WURV8DFxSFpOH4NsPlI
   auth: inherit
 
 settings:

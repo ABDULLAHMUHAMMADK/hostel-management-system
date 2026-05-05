@@ -9,62 +9,77 @@ export const userRegister = async (req, res) => {
     const { name, email, password, role, hostelId, roomId } = req.body;
 
     if (!name || !email || !password) {
-      return res.json({
-        message: "please fill all the feild properley",
+      return res.status(400).json({
         success: false,
+        message: "Please fill all the fields properly",
       });
     }
 
     const userExists = await User.findOne({ email });
-
     if (userExists) {
       return res.status(400).json({
-        message: "User Already Exist",
         success: false,
+        message: "User Already Exists",
       });
     }
 
     let linkedHostel = null;
-    if (hostelId) {
+    let room = null;
+    let isNowFull = false;
+
+    if (role === "student") {
+      const hostelCount = await Hostel.countDocuments();
+      if (hostelCount === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "There is no hostel registered yet",
+        });
+      }
+
+      if (!hostelId) {
+        return res.status(400).json({
+          success: false,
+          message: "Students must select a hostel to register",
+        });
+      }
       linkedHostel = await Hostel.findById(hostelId);
+      if (!linkedHostel) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Hostel not found" });
+      }
+
+      if (!roomId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Please select a room." });
+      }
+      room = await Room.findById(roomId);
+      if (!room) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Room not found." });
+      }
+
+      // Check Capacity
+      if (room.occupants.length >= room.maxCapicity) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Room is already full!" });
+      }
+
+      isNowFull = room.occupants.length + 1 >= room.maxCapicity;
     }
 
-    if (role === "student" && (await Hostel.countDocuments()) === 0) {
-      return res.status(400).json({
-        message: "There is no hostel register yet",
-        success: false,
-      });
-    }
-
-    if (role === "student" && !linkedHostel) {
-      return res.status(400).json({
-        message: "Students must select a hostel to register",
-        success: false,
-      });
-    }
-
-    if (role === "student" && !roomId) {
-      return res.status(400).json({ message: "Please select a room." });
-    }
-
-    const room = await Room.findById(roomId);
-    if (!room) {
-      return res.status(404).json({ message: "Room not found." });
-    }
-    if (room.occupants.length >= room.maxCapicity) {
-      return res.status(400).json({ message: "Room is already full!" });
-    }
-
-    const isNowFull = room.occupants.length + 1 >= room.maxCapicity;
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
 
     const newUser = await User.create({
       name,
       email,
-      role: role || "student",
-      hostelId: role === "warden" ? null : linkedHostel._id,
       password: hashPassword,
+      role: role || "student",
+      hostelId: role === "student" ? linkedHostel?._id : hostelId || null,
       roomId: role === "student" ? roomId : null,
     });
 
@@ -79,15 +94,15 @@ export const userRegister = async (req, res) => {
     }
 
     return res.status(201).json({
-      message: "the user regester successfully",
-      Data: newUser,
       success: true,
+      message: `${role} registered successfully`,
+      data: newUser,
     });
   } catch (error) {
-    console.log(error.message);
+    console.log("Error in Register:", error.message);
     return res.status(500).json({
-      message: "Internal Server Error",
       success: false,
+      message: error.message,
     });
   }
 };

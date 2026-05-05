@@ -4,7 +4,7 @@ const feeSchema = new mongoose.Schema(
   {
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user",
       required: true,
     },
     hostelId: {
@@ -26,7 +26,7 @@ const feeSchema = new mongoose.Schema(
       default: "pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Fee = mongoose.model("Fee", feeSchema);

@@ -34,6 +34,7 @@ app.get("/data/user", async (req, res) => {
   try {
     const data = await User.find();
 
+
     res.json({ message: `total users is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);

@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/fee/pay-fee
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Y2NiYTlmMDk0ZWFkNThmZWJiZTYzZSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc3MTY1NTMwLCJleHAiOjE3NzcxNjczMzB9.yrvxpe86X4csPMM04Q5KUy4QWpPRikxl-LcdCFo5TLs
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzY0ZmJkMmNjNjczYTFhNGU4MTg0MSIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzc3MzcwNTc2LCJleHAiOjE3NzczNzIzNzZ9.eubDLTOuv7-gtMGsiZvMXUv8b49UBJQ1pQbu-f_l5Ac
   body:
     type: json
     data: |-

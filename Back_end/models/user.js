@@ -24,13 +24,6 @@ const userSchema = new mongoose.Schema(
     stripeCustomerId: {
       type: String,
     },
-    monthlyFee: { type: Number, default: 2000 },
-    paymentStatus: {
-      type: String,
-      enum: ["Pending", "Paid"],
-      default: "Pending",
-    },
-    lastPaymentDate: { type: Date },
   },
   {
     timestamps: true,

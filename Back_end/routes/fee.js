@@ -4,6 +4,8 @@ import {
   createCheckoutSession,
   createFee,
   generateMonthlyFees,
+  getDefaulters,
+  getFeeStats,
   getStudentFees,
 } from "../controllers/fee.js";
 import { authorize, verifyUser } from "../middleware/authMiddleware.js";
@@ -21,7 +23,14 @@ routes.post(
 
 routes.get("/my-fees", verifyUser, authorize(["student"]), getStudentFees);
 
-routes.get("/pay-fee", verifyUser, authorize(["student"]), createCheckoutSession);
+routes.get(
+  "/pay-fee",
+  verifyUser,
+  authorize(["student"]),
+  createCheckoutSession,
+);
 
+routes.get("/fee-stats", verifyUser, authorize(["warden"]), getFeeStats);
+routes.get("/defulters", verifyUser, authorize(["warden"]), getDefaulters);
 
 export default routes;

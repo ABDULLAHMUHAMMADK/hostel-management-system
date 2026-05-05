@@ -1,0 +1,22 @@
+info:
+  name: Room Availability
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: http://localhost:5000/api/hostel/availability?roomNumber=30
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc2Mzc0NTEsImV4cCI6MTc3NzYzOTI1MX0.CfJ5SL9r2iefkyMiRWj0CPNQqvnBf8yyy-0Mb9P6uHk
+  params:
+    - name: roomNumber
+      value: "30"
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

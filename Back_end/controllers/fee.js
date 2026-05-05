@@ -3,6 +3,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 import { Fee } from "../models/fee.js";
 import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
+import mongoose from "mongoose";
+import { Room } from "../models/room.js";
 
 export const createFee = async (req, res) => {
   const { studentId, hostelId, amount, month } = req.body;
@@ -33,7 +35,6 @@ export const generateMonthlyFees = async (req, res) => {
 
   try {
     const hostel = await Hostel.findById(hostelId).populate("students");
-    console.log(hostel);
 
     if (hostel.students.length === 0) {
       return res.status(404).json({
@@ -95,7 +96,9 @@ export const createCheckoutSession = async (req, res) => {
 
     const feeExists = await Fee.findById(feeId);
     if (!feeExists) {
-      return res.status(404).json({ success: false, message: "Fee record not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Fee record not found" });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -150,10 +153,56 @@ export const stripeWebhook = async (req, res) => {
 
     await Fee.findByIdAndUpdate(feeId, { $set: { status: "paid" } });
 
-    await User.findByIdAndUpdate(userId, {
-      $set: { paymentStatus: "paid", lastPaymentDate: new Date() },
-    });
   }
 
   res.status(200).json({ received: true });
+};
+
+export const getFeeStats = async (req, res) => {
+  try {
+    const { hostelId } = req.user;
+    const stats = await Fee.aggregate([
+      {
+        $match: {
+          hostelId: new mongoose.Types.ObjectId(hostelId),
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          totalAmount: { $sum: "$amount" },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    res.status(200).json({ success: true, stats });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getDefaulters = async (req, res) => {
+  try {
+    const { hostelId } = req.user;
+
+    const defaulters = await Fee.find({
+      hostelId: hostelId,
+      status: "pending",
+    }).populate({
+      path: "studentId",
+      select: "name email roomId",
+      populate: {
+        path: "roomId",
+        select: "roomNumber type",
+      },
+    });
+    res.status(200).json({
+      success: true,
+      message: `${defaulters.length} students have not paid `,
+      data: defaulters,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

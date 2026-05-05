@@ -63,7 +63,12 @@ export const getMyHostel = async (req, res) => {
         select: "name email",
       },
     ]);
-    if (totalStudents === 0 || page > totalPages) {
+    if (totalStudents === 0) {
+      return res
+        .status(400)
+        .json({ message: "no student found", success: false });
+    }
+    if (page > totalPages) {
       return res.status(400).json({ message: "no page found", success: false });
     }
     return res.status(200).json({
@@ -227,116 +232,162 @@ export const getHostelAnalytics = async (req, res) => {
   }
 };
 
-// export const createCheckoutSession = async (req, res) => {
-//   try {
-//     const student = req.user;
-//     const { amount, feeId } = req.body;
 
-//     const session = await stripe.checkout.sessions.create({
-//       payment_method_types: ["card"],
-//       mode: "payment",
-
-//       success_url: "http://127.0.0.1:5500/succes.html",
-//       cancel_url: "http://127.0.0.1:5500/reject.html",
-
-//       customer_email: student.email,
-
-//       line_items: [
-//         {
-//           price_data: {
-//             currency: "usd",
-//             product_data: {
-//               name: "Hostel Monthely Fee",
-//               description: `payment for student ${student.name}`,
-//             },
-//             unit_amount: amount * 100,
-//           },
-//           quantity: 1,
-//         },
-//       ],
-
-//       metadata: { userId: student._id.toString(), feeId: feeId.toString() },
-//     });
-
-//     return res.status(200).json({
-//       message: "Checkout session created! Redirecting to payment...",
-//       success: true,
-//       url: session.url,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message, success: false });
-//   }
-// };
-
-// export const stripeWebhook = async (req, res) => {
-//   console.log("stripewebhook is running");
-//   const sign = req.headers["stripe-signature"];
-//   let event;
-
-//   try {
-//     event = stripe.webhooks.constructEvent(
-//       req.body,
-//       sign,
-//       process.env.STRIPE_WEBHOOK_SECRET,
-//     );
-
-//     console.log(event.type);
-//   } catch (error) {
-//     return res.status(400).json({ error: error.message, success: false });
-//   }
-
-//   if (event.type === "checkout.session.completed") {
-//     const session = event.data.object;
-//     const studentId = session.metadata.userId;
-//     const feeId = session.metadata.feeId;
-//     console.log("Updating database for student:", studentId);
-
-//     await Fee.findByIdAndUpdate(feeId,{
-//       $set:{status:"paid"}
-//     })
-   
-   
-//     await User.findByIdAndUpdate(studentId, {
-//       paymentStatus: "paid",
-//       lastPaymentDate: new Date(),
-//     });
-//   }
-//   res.status(200).json({ message: "payment successfully", recevied: true });
-// };
 
 export const initializeRooms = async (req, res) => {
-  const hostelId = req.user.hostelId;
+  try {
+    const hostelId = req.user.hostelId;
+    const { roomBatches } = req.body;
 
-  const { roomBatches } = req.body;
+    const capacityMap = {
+      single: 1,
+      "2-seater": 2,
+      "3-seater": 3,
+      "4-seater": 4,
+      "5-seater": 5,
+    };
 
-  const capacityMap = {
-    single: 1,
-    "2-seater": 2,
-    "3-seater": 3,
-    "4-seater": 4,
-    "5-seater": 5,
-  };
-  const roomsToCreate = [];
+    const hostel = await Hostel.findById(hostelId);
 
-  roomBatches.forEach((batch) => {
-    for (let i = batch.start; i <= batch.end; i++) {
-      roomsToCreate.push({
-        roomNumber: i.toString(),
-        type: batch.type,
-        maxCapicity: capacityMap[batch.type],
-        hostelId: hostelId,
+    if (!hostel) {
+      return res.status(404).json({
+        message: "Hostel not found",
+        success: false,
       });
     }
-  });
 
-  try {
+    const maxRooms = hostel.totalRooms;
+
+    let totalRequestedRooms = 0;
+
+    roomBatches.forEach((batch) => {
+      if (batch.start > batch.end) {
+        throw new Error(
+          `Invalid range: start (${batch.start}) cannot be greater than end (${batch.end})`,
+        );
+      }
+
+      if (batch.start < 1) {
+        throw new Error("Room number cannot be less than 1");
+      }
+
+      if (batch.end > maxRooms) {
+        throw new Error(`Room number cannot exceed hostel limit (${maxRooms})`);
+      }
+
+      totalRequestedRooms += batch.end - batch.start + 1;
+    });
+
+    if (totalRequestedRooms > maxRooms) {
+      return res.status(400).json({
+        message: `Room limit exceeded. Max allowed: ${maxRooms}, Requested: ${totalRequestedRooms}`,
+        success: false,
+      });
+    }
+
+    const roomSet = new Set();
+    const roomsToCreate = [];
+
+    roomBatches.forEach((batch) => {
+      for (let i = batch.start; i <= batch.end; i++) {
+        const roomNumber = i.toString();
+
+        if (roomSet.has(roomNumber)) {
+          return res.status(400).json({
+            message: `Duplicate room number in request: ${roomNumber}`,
+            success: false,
+          });
+        }
+
+        roomSet.add(roomNumber);
+
+        roomsToCreate.push({
+          roomNumber,
+          type: batch.type,
+          maxCapicity: capacityMap[batch.type],
+          hostelId,
+        });
+      }
+    });
+
+    const existingRooms = await Room.find({
+      hostelId,
+      roomNumber: { $in: roomsToCreate.map((r) => r.roomNumber) },
+    });
+
+    if (existingRooms.length > 0) {
+      return res.status(400).json({
+        message: "Some rooms already exist for this hostel",
+        existingRooms: existingRooms.map((r) => r.roomNumber),
+        success: false,
+      });
+    }
+
     const createdRooms = await Room.insertMany(roomsToCreate);
-    res.status(201).json({
+
+    return res.status(201).json({
       success: true,
-      message: `${createdRooms.length} rooms created!`,
+      message: `${createdRooms.length} rooms created successfully`,
       data: createdRooms,
     });
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    console.log(error.message);
+
+    return res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+
+
+
+export const getRoomAvailability = async (req, res) => {
+  try {
+    const { hostelId } = req.user;
+    const { roomNumber } = req.query;
+
+    let query = { hostelId };
+
+    if (roomNumber) {
+      query.roomNumber = roomNumber;
+    }
+    console.log(query);
+    const rooms = await Room.find(query)
+      .sort({ roomNumber: 1 })
+      .collation({ locale: "en", numericOrdering: true });
+
+    if (rooms.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: roomNumber
+          ? `Room ${roomNumber} not found in this hostel.`
+          : "No rooms found in this hostel.",
+      });
+    }
+
+    const availabilityData = await Promise.all(
+      rooms.map(async (room) => {
+        const studentCount = await User.countDocuments({ roomId: room._id });
+
+        return {
+          roomNumber: room.roomNumber,
+          roomType: room.type,
+          capacity: room.maxCapicity, // Fixed spelling from 'capicity'
+          occupiedSeats: studentCount,
+          availableSeats: room.maxCapicity - studentCount,
+          isFull: studentCount >= room.maxCapicity ? "Full" : "Available",
+        };
+      }),
+    );
+
+    res.status(200).json({
+      success: true,
+      totalRooms: rooms.length,
+      data: availabilityData,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

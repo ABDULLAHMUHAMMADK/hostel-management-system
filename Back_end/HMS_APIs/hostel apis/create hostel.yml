@@ -8,14 +8,14 @@ http:
   url: http://localhost:5000/api/hostel/createHostel
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5Y2VhZjk0OGJlNzY0NGZjMThiMmQ1YiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzUxNTMwODcsImV4cCI6MTc3NTE1NDg4N30.2PpiUwYYcLKvaezpJ_ONf1NkmPypcrL8d5ZoNqU5k4I
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZjRlYTU3ODliOTBiMGUxMTdlODk0MCIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc2NTg0NzMsImV4cCI6MTc3NzY2MDI3M30.1W9uj-qpoSvXFXDy3nP8-BRc2jKkRzxpPAlR4OjFXbc
   body:
     type: json
     data: |-
       {
-        "name":"out reach",
+        "name":"girls hostel",
         "location":"agriculture university",
-        "totalRooms":"200"
+        "totalRooms":"50"
       }
   auth: inherit
 
