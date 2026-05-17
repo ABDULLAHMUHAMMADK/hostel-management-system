@@ -15,11 +15,6 @@ const hostelSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
-  totalCapacity: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
   warden: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",

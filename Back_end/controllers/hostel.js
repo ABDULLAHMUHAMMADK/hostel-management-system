@@ -232,8 +232,6 @@ export const getHostelAnalytics = async (req, res) => {
   }
 };
 
-
-
 export const initializeRooms = async (req, res) => {
   try {
     const hostelId = req.user.hostelId;
@@ -310,10 +308,12 @@ export const initializeRooms = async (req, res) => {
       }
     });
 
+
     const existingRooms = await Room.find({
       hostelId,
       roomNumber: { $in: roomsToCreate.map((r) => r.roomNumber) },
-    });
+    }).sort({ roomNumber: 1 }).collation({ locale: "en", numericOrdering: true });
+;
 
     if (existingRooms.length > 0) {
       return res.status(400).json({
@@ -339,9 +339,6 @@ export const initializeRooms = async (req, res) => {
     });
   }
 };
-
-
-
 
 export const getRoomAvailability = async (req, res) => {
   try {

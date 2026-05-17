@@ -32,10 +32,8 @@ export const createFee = async (req, res) => {
 
 export const generateMonthlyFees = async (req, res) => {
   const { hostelId, amount, month } = req.body;
-
   try {
-    const hostel = await Hostel.findById(hostelId).populate("students");
-
+    const hostel = await Hostel.findById(hostelId);
     if (hostel.students.length === 0) {
       return res.status(404).json({
         success: false,
@@ -50,7 +48,6 @@ export const generateMonthlyFees = async (req, res) => {
         message: `Fees for ${month} have already been generated for this hostel.`,
       });
     }
-
     const feeRecords = hostel.students.map((student) => {
       return {
         studentId: student._id,
@@ -152,7 +149,6 @@ export const stripeWebhook = async (req, res) => {
     const { userId, feeId } = session.metadata;
 
     await Fee.findByIdAndUpdate(feeId, { $set: { status: "paid" } });
-
   }
 
   res.status(200).json({ received: true });
@@ -191,7 +187,7 @@ export const getDefaulters = async (req, res) => {
       status: "pending",
     }).populate({
       path: "studentId",
-      select: "name email roomId",
+      select: "name roomId",
       populate: {
         path: "roomId",
         select: "roomNumber type",
