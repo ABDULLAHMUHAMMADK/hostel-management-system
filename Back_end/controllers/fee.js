@@ -101,7 +101,7 @@ export const createCheckoutSession = async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      success_url: "http://127.0.0.1:5500/success.html",
+      success_url: "http://127.0.0.1:5500/succes.html",
       cancel_url: "http://127.0.0.1:5500/reject.html",
 
       customer_email: student.email,

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-const app = express();
+import cors from "cors";
 import userRoutes from "./routes/user.js";
 import hostelRoutes from "./routes/hostel.js";
 import complaintRoutes from "./routes/complaint.js";
@@ -13,8 +13,14 @@ import { Hostel } from "./models/hostel.js";
 import { Room } from "./models/room.js";
 import { Complaint } from "./models/complaint.js";
 import { Fee } from "./models/fee.js";
-
 import { stripeWebhook } from "./controllers/fee.js";
+
+const app = express();
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
 app.post(
   "/api/fee/webhook",
   express.raw({ type: "application/json" }),

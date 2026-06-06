@@ -61,7 +61,6 @@ export const userRegister = async (req, res) => {
           .json({ success: false, message: "Room not found." });
       }
 
-      // Check Capacity
       if (room.occupants.length >= room.maxCapicity) {
         return res
           .status(400)

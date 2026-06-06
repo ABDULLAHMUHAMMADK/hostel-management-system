@@ -199,32 +199,57 @@ export const searchStudent = async (req, res) => {
 
 export const getHostelAnalytics = async (req, res) => {
   try {
-    const wardenId = req.user;
+    const wardenId = req.user._id || req.user.id || req.user;
 
     const hostel = await Hostel.findOne({ warden: wardenId });
-
     if (!hostel) {
       return res
         .status(404)
         .json({ message: "Hostel not found", success: false });
     }
 
-    const totalBeds = hostel.totalCapacity;
-    const totalRooms = hostel.totalRooms;
-    const currentStudent = hostel.students.length;
+    const hostelId = hostel._id;
 
-    const availableBeds = totalBeds - currentStudent;
-    const occupancyRate = ((currentStudent / totalBeds) * 100).toFixed(2);
+    const rooms = await Room.find({ hostelId });
+
+    let totalBeds = 0;
+    rooms.forEach((room) => {
+      totalBeds += room.maxCapicity || 0;
+    });
+
+    const totalRooms = rooms.length;
+    const currentStudentsCount = hostel.students ? hostel.students.length : 0;
+    const availableBeds = totalBeds - currentStudentsCount;
+
+    const occupancyRate =
+      totalBeds > 0
+        ? ((currentStudentsCount / totalBeds) * 100).toFixed(2)
+        : "0.00";
+
+    const paidFeesCount = await Fee.countDocuments({
+      hostelId,
+      status: "paid",
+    });
+    const pendingFeesCount = await Fee.countDocuments({
+      hostelId,
+      status: "pending",
+    });
+
     return res.status(200).json({
+      success: true,
       message: "Analytics fetched successfully",
-      Analytics: {
-        hostelname: hostel.name,
+      analytics: {
+        hostelName: hostel.name,
         totalRooms: totalRooms,
-        totaBeds: totalBeds,
-        occupiedBeds: currentStudent,
+        totalBeds: totalBeds,
+        occupiedBeds: currentStudentsCount,
         availableBeds: availableBeds,
         hostelOccupancy: `${occupancyRate}%`,
         status: availableBeds > 0 ? "Available" : "Full",
+        financials: {
+          totalPaidInvoices: paidFeesCount,
+          totalPendingInvoices: pendingFeesCount,
+        },
       },
     });
   } catch (error) {
@@ -308,13 +333,12 @@ export const initializeRooms = async (req, res) => {
       }
     });
 
-
     const existingRooms = await Room.find({
       hostelId,
       roomNumber: { $in: roomsToCreate.map((r) => r.roomNumber) },
-    }).sort({ roomNumber: 1 }).collation({ locale: "en", numericOrdering: true });
-;
-
+    })
+      .sort({ roomNumber: 1 })
+      .collation({ locale: "en", numericOrdering: true });
     if (existingRooms.length > 0) {
       return res.status(400).json({
         message: "Some rooms already exist for this hostel",

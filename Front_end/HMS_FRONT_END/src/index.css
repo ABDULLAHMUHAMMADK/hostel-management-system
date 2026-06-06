@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-dark: #0f172a;      /* Deep slate for sidebars */
+  --color-brand-canvas: #f8fafc;    /* Light canvas background */
+  --color-brand-primary: #6366f1;   /* Indigo accent buttons */
+  --color-brand-success: #10b981;   /* Emerald green for badges */
+  --color-brand-danger: #ef4444;    /* Crimson red for errors */
+}
