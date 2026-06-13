@@ -2,6 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
+
+// ─── 1. NEW SOCKET SYSTEM IMPORTS ──────────────────────────────────────────
+import http from "http";
+import { Server } from "socket.io";
+
 import userRoutes from "./routes/user.js";
 import hostelRoutes from "./routes/hostel.js";
 import complaintRoutes from "./routes/complaint.js";
@@ -16,6 +21,29 @@ import { Fee } from "./models/fee.js";
 import { stripeWebhook } from "./controllers/fee.js";
 
 const app = express();
+
+// ─── 2. HTTP SERVER & SOCKET INITIALIZATION ────────────────────────────────
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  }
+});
+
+// Make socket server globally available across your entire backend architecture
+global.io = io;
+
+io.on("connection", (socket) => {
+  console.log(`⚡ A user connected to live pipeline: ${socket.id}`);
+  
+  socket.on("disconnect", () => {
+    console.log("🔌 A user disconnected from pipeline");
+  });
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
@@ -39,8 +67,6 @@ app.use("/api/fee", feeRoutes);
 app.get("/data/user", async (req, res) => {
   try {
     const data = await User.find();
-
-
     res.json({ message: `total users is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
@@ -50,25 +76,24 @@ app.get("/data/user", async (req, res) => {
 app.get("/data/hostel", async (req, res) => {
   try {
     const data = await Hostel.find();
-
     res.json({ message: `total hostel is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
   }
 });
+
 app.get("/data/room", async (req, res) => {
   try {
     const data = await Room.find();
-
     res.json({ message: `total room is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
   }
 });
+
 app.get("/data/complaint", async (req, res) => {
   try {
     const data = await Complaint.find();
-
     res.json({ message: `total complain is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
@@ -78,13 +103,13 @@ app.get("/data/complaint", async (req, res) => {
 app.get("/data/fee", async (req, res) => {
   try {
     const data = await Fee.find();
-
     res.json({ message: `total fee is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);
   }
 });
 
-app.listen(PORT, () => {
+// ─── 3. CRITICAL CHANGE: LISTEN ON SERVER instead of APP ───────────────────
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

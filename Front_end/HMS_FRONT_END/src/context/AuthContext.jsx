@@ -1,26 +1,59 @@
-import { createContext, useState } from "react";
-import API from "../api/client.js";
+import { createContext, useContext, useState, useEffect } from "react";
+import API from "../api/client";
+const AuthContext = createContext(null);
 
-export const AuthContext = createContext();
-
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const testBackendConnection = async () => {
-    try {
-      console.log("Frontend is sending a request to the backend server...");
-      
-      const response = await API.get("/data/user"); 
-      
-      console.log("SUCCESS! Data received from Backend:", response.data);
-    } catch (error) {
-      console.error("BACKEND CONNECTION FAILED. Error details:", error.message);
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    console.log(storedToken, storedUser)
+
+    if (storedToken && storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
+    
+    setLoading(false);
+  }, []);
+
+
+
+  
+
+
+ const login = async (email, password) => {
+  const response = await API.post("/users/login", { email, password })
+  
+  const { token, user } = response.data
+
+  localStorage.setItem("token", token)
+  localStorage.setItem("user", JSON.stringify(user))
+  
+  setUser(user)
+  return user
+}
+
+
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, testBackendConnection }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

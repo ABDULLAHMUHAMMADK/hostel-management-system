@@ -197,6 +197,69 @@ export const searchStudent = async (req, res) => {
   }
 };
 
+// export const getHostelAnalytics = async (req, res) => {
+//   try {
+//     const wardenId = req.user._id || req.user.id || req.user;
+
+//     const hostel = await Hostel.findOne({ warden: wardenId });
+//     if (!hostel) {
+//       return res
+//         .status(404)
+//         .json({ message: "Hostel not found", success: false });
+//     }
+
+//     const hostelId = hostel._id;
+
+//     const rooms = await Room.find({ hostelId });
+
+//     let totalBeds = 0;
+//     rooms.forEach((room) => {
+//       totalBeds += room.maxCapicity || 0;
+//     });
+
+//     const totalRooms = rooms.length;
+//     const currentStudentsCount = hostel.students ? hostel.students.length : 0;
+//     const availableBeds = totalBeds - currentStudentsCount;
+
+//     const occupancyRate =
+//       totalBeds > 0
+//         ? ((currentStudentsCount / totalBeds) * 100).toFixed(2)
+//         : "0.00";
+
+//     const paidFeesCount = await Fee.countDocuments({
+//       hostelId,
+//       status: "paid",
+//     });
+//     const pendingFeesCount = await Fee.countDocuments({
+//       hostelId,
+//       status: "pending",
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Analytics fetched successfully",
+//       analytics: {
+//         hostelName: hostel.name,
+//         totalRooms: totalRooms,
+//         totalBeds: totalBeds,
+//         occupiedBeds: currentStudentsCount,
+//         availableBeds: availableBeds,
+//         hostelOccupancy: `${occupancyRate}%`,
+//         status: availableBeds > 0 ? "Available" : "Full",
+//         financials: {
+//           totalPaidInvoices: paidFeesCount,
+//           totalPendingInvoices: pendingFeesCount,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message, success: false });
+//   }
+// };
+
+
+
+
 export const getHostelAnalytics = async (req, res) => {
   try {
     const wardenId = req.user._id || req.user.id || req.user;
@@ -210,12 +273,28 @@ export const getHostelAnalytics = async (req, res) => {
 
     const hostelId = hostel._id;
 
+    // Fetch all rooms tied to this hostel
     const rooms = await Room.find({ hostelId });
 
     let totalBeds = 0;
+    let occupiedRoomsCount = 0;
+    let completelyAvailableRoomsCount = 0;
+
+    // ─── NEW EXACT REAL-TIME ROOM MATH CALCULATION ─────────────────────────
     rooms.forEach((room) => {
+      // 1. Accumulate total physical bed counts across variable layouts
       totalBeds += room.maxCapicity || 0;
+
+      // 2. Determine room usage based on actual active resident arrays
+      if (room.occupants && room.occupants.length > 0) {
+        // If even 1 student is in the room, it is counted as an occupied/used room
+        occupiedRoomsCount++;
+      } else {
+        // If occupants array is empty, the room is completely available
+        completelyAvailableRoomsCount++;
+      }
     });
+    // ───────────────────────────────────────────────────────────────────────
 
     const totalRooms = rooms.length;
     const currentStudentsCount = hostel.students ? hostel.students.length : 0;
@@ -241,6 +320,12 @@ export const getHostelAnalytics = async (req, res) => {
       analytics: {
         hostelName: hostel.name,
         totalRooms: totalRooms,
+        
+        // ─── THE NEW CORRECT ROOM FIELDS ────────────────────────────────────
+        occupiedRooms: occupiedRoomsCount,
+        availableRooms: completelyAvailableRoomsCount,
+        // ────────────────────────────────────────────────────────────────────
+        
         totalBeds: totalBeds,
         occupiedBeds: currentStudentsCount,
         availableBeds: availableBeds,
@@ -256,6 +341,8 @@ export const getHostelAnalytics = async (req, res) => {
     res.status(500).json({ message: error.message, success: false });
   }
 };
+
+
 
 export const initializeRooms = async (req, res) => {
   try {

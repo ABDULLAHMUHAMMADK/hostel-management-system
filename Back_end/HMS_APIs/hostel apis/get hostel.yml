@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/hostel/getHostel
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzU2NDE4ODIsImV4cCI6MTc3NTY0MzY4Mn0.9SSvFDHMNLSMd5j0OBGwQ6QsxR9RotYaCWoMvAvFlAA
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwOTAwODcsImV4cCI6MTc4MTA5MTg4N30.yZQJxkm03mpIM1a85f-bgE5YyE5tsTcuXS8EAKztK_E
   auth: inherit
 
 settings:

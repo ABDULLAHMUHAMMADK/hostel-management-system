@@ -1,29 +1,36 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext.jsx";
-import Landing from "./pages/Landing.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
+import { AuthProvider } from "./context/AuthContext";
+import Landing from "./pages/Landing"; // 1. RE-IMPORTED THE LANDING PAGE VIEW
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
-import AdminLayout from "./layouts/AdminLayout.jsx";
-import AdminOverview from "./pages/admin/AdminOverview.jsx";
-import AdminRooms from "./pages/admin/AdminRooms.jsx";
+// Layout and Page view component imports
+import WardenLayout from "./layouts/WardenLayout";
+import WardenOverview from "./pages/warden/WardenOverview";
+import WardenRooms from "./pages/warden/WardenRooms";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Landing />} />
-
+          
+          {/* Public Root Platform Entrance Gateway */}
+          <Route path="/" element={<Landing />} /> {/* 2. RE-MOUNTED THE BASE ROUTE */}
+          
+          {/* Public Authentication Route Gateway */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminOverview />} />
-            <Route path="rooms" element={<AdminRooms />} />
+          {/* Secure Warden Dashboard Route Structure Wrapper */}
+          <Route path="/warden" element={<WardenLayout />}>
+            <Route index element={<WardenOverview />} />
+            <Route path="rooms" element={<WardenRooms />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch-All Automatic Fallback Redirection */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

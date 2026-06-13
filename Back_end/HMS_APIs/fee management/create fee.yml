@@ -4,19 +4,19 @@ info:
   seq: 1
 
 http:
-  method: GET
-  url: http://localhost:5000/api/fee/create
+  method: POST
+  url: http://localhost:5000/api/fee/create-fee
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcxMTUwMzgsImV4cCI6MTc3NzExNjgzOH0.HAqH6zOD0EoPLsA0SJ6pogkq7ZbbBr9wRFWNk8g_afQ
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwODI3MTksImV4cCI6MTc4MTA4NDUxOX0.k0l4WSbLf7wDtGz0hfDMOi_bHjUiTT6PG-EVKQlIt98
   body:
     type: json
     data: |-
       {
-        "studentId": "69e7c7fd38502d3a77aa3445", 
-        "hostelId": "69c571dfc002a9e6634dfe89",
-        "amount": 250,
-        "month": "May 2026"
+        "studentId": "6a287448aaadf5018db34c6c", 
+        "hostelId": "6a0838ff66da7121592963db",
+        "amount": 2000,
+        "month": "janauary 2026"
       }
   auth: inherit
 

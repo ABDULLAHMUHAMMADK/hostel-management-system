@@ -5,7 +5,7 @@ info:
 
 http:
   method: PATCH
-  url: http://localhost:5000/api/compliant/resolve/69ec49e9b141a7b93a82e6f2
+  url: http://localhost:5000/api/compliant/resolve/6a287565aaadf5018db34cc7
   auth: inherit
 
 settings:

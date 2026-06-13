@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/hostel/availability?roomNumber=30
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc2Mzc0NTEsImV4cCI6MTc3NzYzOTI1MX0.CfJ5SL9r2iefkyMiRWj0CPNQqvnBf8yyy-0Mb9P6uHk
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwOTAwODcsImV4cCI6MTc4MTA5MTg4N30.yZQJxkm03mpIM1a85f-bgE5YyE5tsTcuXS8EAKztK_E
   params:
     - name: roomNumber
       value: "30"

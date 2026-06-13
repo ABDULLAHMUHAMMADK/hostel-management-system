@@ -90,6 +90,41 @@ export const userRegister = async (req, res) => {
         $push: { occupants: newUser._id },
         $set: { status: isNowFull ? "full" : "available" },
       });
+
+      // ─── NEW REAL-TIME SOCKET BROADCAST TRIGGER ─────────────────────────────
+      if (global.io) {
+        try {
+          // 1. Fetch updated real-time analytics numbers across the target hostel
+          const totalRooms = await Room.countDocuments({ hostelId });
+          
+          // Sum up max capacity of all rooms to get total beds
+          const roomsArray = await Room.find({ hostelId });
+          const totalBeds = roomsArray.reduce((acc, curr) => acc + (curr.maxCapicity || 0), 0);
+          
+          // Count active resident students
+          const occupiedBeds = await User.countDocuments({ hostelId, role: "student" });
+          const availableBeds = Math.max(0, totalBeds - occupiedBeds);
+          const occupancyPercentage = totalBeds > 0 ? `${((occupiedBeds / totalBeds) * 100).toFixed(2)}%` : "0%";
+
+          // 2. Wrap matching structural values exactly how your front-end dashboard states read them
+          const socketPayload = {
+            totalRooms,
+            totalBeds,
+            occupiedBeds,
+            availableBeds,
+            hostelOccupancy: occupancyPercentage,
+            hostelName: linkedHostel.name || "System Campus",
+            status: occupancyPercentage === "100.00%" ? "Full" : "Active"
+          };
+
+          // 3. Beam the data straight to the warden's browser
+          global.io.emit("analytics_updated", socketPayload);
+          console.log("📢 Real-time dashboard update emitted successfully!");
+        } catch (socketErr) {
+          console.log("Socket calculation background fail logs:", socketErr.message);
+        }
+      }
+      // ────────────────────────────────────────────────────────────────────────
     }
 
     return res.status(201).json({
@@ -105,7 +140,6 @@ export const userRegister = async (req, res) => {
     });
   }
 };
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -121,11 +155,28 @@ export const login = async (req, res) => {
       email,
     });
 
+    // if (findUser && (await bcrypt.compare(password, findUser.password))) {
+    //   return res.status(200).json({
+    //     message: `Welcome ${findUser.name}, You are now loged in`,
+    //     success: true,
+    //     token: generateToken(findUser._id, findUser.role),
+    //   });
+    // } 
+    
+    
+    
     if (findUser && (await bcrypt.compare(password, findUser.password))) {
       return res.status(200).json({
         message: `Welcome ${findUser.name}, You are now loged in`,
         success: true,
         token: generateToken(findUser._id, findUser.role),
+        // ADD THIS LINE HERE: Sends the necessary profile properties straight to React
+        user: {
+          id: findUser._id,
+          name: findUser.name,
+          role: findUser.role, // "warden" or "student"
+          hostelId: findUser.hostelId || null
+        }
       });
     } else {
       return res

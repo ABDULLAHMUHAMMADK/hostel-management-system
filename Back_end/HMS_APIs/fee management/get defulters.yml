@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/fee/defulters
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc0Mjc0NzUsImV4cCI6MTc3NzQyOTI3NX0.wNg4g1Dj2XQqpuj22lDa6tFbElg1Jb65u128MlFe_Yw
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwOTAwODcsImV4cCI6MTc4MTA5MTg4N30.yZQJxkm03mpIM1a85f-bgE5YyE5tsTcuXS8EAKztK_E
   auth: inherit
 
 settings:

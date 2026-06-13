@@ -8,12 +8,12 @@ http:
   url: http://localhost:5000/api/fee/generate-fee
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcxNDczNjQsImV4cCI6MTc3NzE0OTE2NH0.gBTHfRIBaBRrrrb9vOo4_1fpxjjExvSdxf3YBJMfZ1k
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwMzYwNTMsImV4cCI6MTc4MTAzNzg1M30.QAnn5LY9PnYT9vpw0qaWtG5BvnDQjHyaQX9OZ-_W4sE
   body:
     type: json
     data: |-
       {
-        "hostelId":"69c571dfc002a9e6634dfe89",
+        "hostelId":"6a0838ff66da7121592963db",
         "amount":"2000",
         "month":"january"
       }

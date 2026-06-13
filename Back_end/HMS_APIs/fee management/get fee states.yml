@@ -8,7 +8,7 @@ http:
   url: http://localhost:5000/api/fee/fee-stats
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3Nzc0MjU2NTgsImV4cCI6MTc3NzQyNzQ1OH0.fHrPbfs0TtfdHnHVn4SRrnPw8nRM_uhJQhQISdWL6J8
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwODIyMzMsImV4cCI6MTc4MTA4NDAzM30.qGl-_WI3v0gsCSBIVyXxBDeTALDsutbubopcgWpD4SM
   auth: inherit
 
 settings:

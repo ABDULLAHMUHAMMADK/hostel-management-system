@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:5000/api/compliant/get-complaint
+  url: http://localhost:5000/api/complaint/get-complaint
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YzUzNDg0NmNmMGU5OGQyMWE1YzkwMiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3NzcwOTAzNjQsImV4cCI6MTc3NzA5MjE2NH0.J4a-BpuaM68JHyeGm4QUbsBQp6PixA7axtTLw4R4cqY
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMDgzOGFlNjZkYTcxMjE1OTI5NjNkNiIsInJvbGUiOiJ3YXJkZW4iLCJpYXQiOjE3ODEwMDQwMjksImV4cCI6MTc4MTAwNTgyOX0.vWVwsQYVNCpWCjaoeMFxXkr_BL3oso3VzuZfVSyMjKU
   auth: inherit
 
 settings:
