@@ -8,6 +8,7 @@ import {
   getHostelAnalytics,
   initializeRooms,
   getRoomAvailability,
+  transferStudent,
 } from "../controllers/hostel.js";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
 const routes = express.Router();
@@ -32,5 +33,7 @@ routes.get(
   authorize(["warden"]),
   getRoomAvailability,
 );
+
+routes.put("/transfer-student/:studentId", verifyUser,authorize(["warden"]), transferStudent);
 
 export default routes;

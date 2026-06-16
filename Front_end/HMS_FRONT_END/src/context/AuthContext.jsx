@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
-    console.log(storedToken, storedUser)
+    console.log(storedToken, storedUser);
 
     if (storedToken && storedUser) {
       setUser(JSON.parse(storedUser));
@@ -18,28 +18,21 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
-    
+
     setLoading(false);
   }, []);
 
+  const login = async (email, password) => {
+    const response = await API.post("/users/login", { email, password });
 
+    const { token, user } = response.data;
 
-  
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
 
-
- const login = async (email, password) => {
-  const response = await API.post("/users/login", { email, password })
-  
-  const { token, user } = response.data
-
-  localStorage.setItem("token", token)
-  localStorage.setItem("user", JSON.stringify(user))
-  
-  setUser(user)
-  return user
-}
-
-
+    setUser(user);
+    return user;
+  };
 
   const logout = () => {
     localStorage.removeItem("token");

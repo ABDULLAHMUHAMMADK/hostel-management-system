@@ -115,7 +115,11 @@ export default function WardenOverview() {
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-grow">
+        <div 
+  className="grid grid-cols-1 lg:grid-cols-3 gap-5"
+  
+  style={{ flexGrow: 1 }}
+>
           <Skeleton className="h-full" />
           <Skeleton className="lg:col-span-2 h-full" />
         </div>
@@ -186,7 +190,7 @@ export default function WardenOverview() {
       </div>
 
       {/* ─── Row 2: Balanced 3-Column Split Content Grid Layout ──────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 flex-grow min-h-0 pb-1">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5  min-h-0 pb-1" style={{ flexGrow: 1 }}>
         
         {/* LEFT PANEL: Occupancy Ratio Donut Ring Chart */}
         <div 
@@ -196,7 +200,7 @@ export default function WardenOverview() {
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest self-start w-full">
             Bed Occupancy Ratio
           </h3>
-          <div className="relative w-full flex-grow flex items-center justify-center min-h-0 py-2">
+          <div className="relative w-full flex items-center justify-center min-h-0 py-2" style={{ flexGrow: 1 }}>
             {analytics?.totalBeds > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -274,8 +278,8 @@ export default function WardenOverview() {
 
           {/* Bottom Half: Complaints Ticket Feed */}
           <div 
-            className="bg-white rounded-2xl p-4 flex flex-col flex-grow min-h-0"
-            style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
+            className="bg-white rounded-2xl p-4 flex flex-col min-h-0"  
+            style={{flexGrow: 1 , boxShadow:  "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
           >
             <div className="flex items-center justify-between mb-2 shrink-0">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -289,7 +293,7 @@ export default function WardenOverview() {
               </button>
             </div>
 
-            <div className="flex-grow overflow-y-auto min-h-0 space-y-2 pr-1">
+            <div className="overflow-y-auto min-h-0 space-y-2 pr-1" style={{ flexGrow: 1 }}>
               {complaints.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <p className="text-[11px] text-slate-400 font-bold text-center">Clear tickets 🎉</p>
@@ -326,7 +330,7 @@ export default function WardenOverview() {
             </p>
           </div>
 
-          <div className="flex-grow overflow-y-auto min-h-0 space-y-2.5 pr-1">
+          <div className="overflow-y-auto min-h-0 space-y-2.5 pr-1" style={{ flexGrow: 1 }}>
             {pendingComplaints.length > 0 && (
               <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
