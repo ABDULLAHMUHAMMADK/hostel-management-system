@@ -8,6 +8,8 @@ import Register from "./pages/Register";
 import WardenLayout from "./layouts/WardenLayout";
 import WardenOverview from "./pages/warden/WardenOverview";
 import WardenRooms from "./pages/warden/WardenRooms";
+import WardenStudents from "./pages/warden/StudentRoster";
+import WardenComplaints from "./pages/warden/WardenComplaints";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/warden" element={<WardenLayout />}>
             <Route index element={<WardenOverview />} />
             <Route path="rooms" element={<WardenRooms />} />
+            <Route path="students" element={<WardenStudents/>} />
+            <Route path="complaint" element={<WardenComplaints/>} />
           </Route>
 
           {/* Catch-All Automatic Fallback Redirection */}

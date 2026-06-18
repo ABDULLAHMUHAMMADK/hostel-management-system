@@ -50,7 +50,8 @@ export default function Login() {
       <DotGridBg />
 
       {/* Login Card Core Frame Box */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10 transition-all m-4">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 
+      rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10 transition-all m-4">
         
         {/* Branding Title */}
         <div className="text-center mb-8">

@@ -5,7 +5,7 @@ import DotGridBg from "../components/DotGridBg.jsx";
 export default function Landing() {
   return (
     // 1. Force the container to lock strictly at 100vh and hide overflow spilling
-    <div className="h-screen w-screen bg-transparent text-slate-800 flex flex-col justify-between selection:bg-teal-500 selection:text-white relative overflow-hidden">
+    <div className="h-screen w-screen bg-transparent  text-slate-800 flex flex-col justify-between selection:bg-teal-500 selection:text-white relative overflow-hidden">
       <DotGridBg />
 
       {/* --- Transparent Navigation Bar --- */}

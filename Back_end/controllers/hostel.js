@@ -86,7 +86,6 @@ export const getMyHostel = async (req, res) => {
   }
 };
 
-
 export const removeStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -94,44 +93,66 @@ export const removeStudent = async (req, res) => {
 
     const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
-      return res.status(404).json({ message: "Hostel not found", success: false });
+      return res
+        .status(404)
+        .json({ message: "Hostel not found", success: false });
     }
 
-    // 1. Pull student from the Hostel document array ledger
-    await Hostel.findByIdAndUpdate(hostel._id, {
-      $pull: { students: studentId },
-    });
+    // 1. DO NOT touch hostel.students array or user.hostelId!
+    // Simply clear the room assignment from the core student profile.
+    const updatedUser = await User.findByIdAndUpdate(
+      studentId,
+      { roomId: null },
+      { new: true },
+    );
 
-    // 2. Erase hostel attachment context from student profile
-    const user = await User.findByIdAndUpdate(studentId, { hostelId: null });
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ message: "Student profile not found", success: false });
+    }
 
-    // 3. Clear occupant space from room assignment
-    if (user && user.roomId) {
-      await Room.findByIdAndUpdate(user.roomId, {
-        $pull: { occupants: studentId },
-        $set: { status: "available" }, // Ensure room flag is marked clear
+    // 2. Find which room currently contains this student in its occupants list
+    const targetedRoom = await Room.findOne({ occupants: studentId });
+
+    if (targetedRoom) {
+      // Pull student from the room array and get fresh count
+      const updatedRoom = await Room.findByIdAndUpdate(
+        targetedRoom._id,
+        { $pull: { occupants: studentId } },
+        { new: true },
+      );
+
+      // 3. Status flag recalculation handled entirely on backend
+      const isNowAvailable =
+        updatedRoom.occupants.length < updatedRoom.maxCapicity;
+      await Room.findByIdAndUpdate(targetedRoom._id, {
+        $set: { status: isNowAvailable ? "available" : "full" },
       });
     }
 
-    // ─── ADVANCED STEP: REAL-TIME WEBSOCKET SYSTEM STREAM BROADCAST ───
-    // Check if socket server instance is bound onto global app environment scope
-    const io = req.app.get("socketio");
+    // ─── WEBSOCKET BROADCAST ───────────────────────────────────────────
+    const io = req.app.get("socketio") || global.io;
     if (io) {
-      console.log("⚡ Emitting real-time eviction alerts over active streams...");
-      // Trigger update hooks on both general analytics metrics and layout configuration cards
-      io.emit("analytics_updated"); 
-      io.emit("room_layout_changed", { studentId, roomId: user?.roomId });
+      console.log(
+        "⚡ Emitting highly accurate real-time room eviction sync...",
+      );
+      io.emit("analytics_updated");
+      io.emit("room_layout_changed", {
+        studentId,
+        roomId: targetedRoom ? targetedRoom._id : null,
+      });
     }
 
-    return res.status(200).json({ 
-      message: "Student removed from Hostel successfully", 
-      success: true 
+    return res.status(200).json({
+      message:
+        "Student unassigned from room layout successfully, remaining in hostel registry",
+      success: true,
     });
   } catch (error) {
     return res.status(400).json({ message: error.message, success: false });
   }
 };
-
 export const updateHostel = async (req, res) => {
   try {
     const wardenId = req.user._id;
@@ -165,111 +186,167 @@ export const updateHostel = async (req, res) => {
   }
 };
 
+
+
 export const searchStudent = async (req, res) => {
   try {
-    const { name } = req.query;
+    // 1. Accept name and status filters from the request queries
+    const { name, statusType } = req.query; // statusType can be: "All", "Allocated", "Unassigned"
     const wardenId = req.user._id;
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-    const skip = (page - 1) * limit;
-    if (!name) {
-      return res
-        .status(400)
-        .json({ message: "Search term is required", success: false });
-    }
-
-    const hostel = await Hostel.findOne({ warden: wardenId }).populate({
-      path: "students",
-      match: {
-        name: { $regex: name, $options: "i" },
-      },
-      options: {
-        limit: limit,
-        skip: skip,
-      },
-      select: "name email",
-    });
-
+    // 2. Locate the Warden's Hostel context
+    const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
       return res
         .status(404)
-        .json({ message: "Hotel not found", success: false });
+        .json({ message: "Hostel authorization failed for this warden", success: false });
     }
 
+    // 3. Establish base conditions targeting all accounts with the 'student' role
+    const queryConditions = {
+      role: "student"
+    };
+
+    // 4. Handle Live Typing Search Input Filter
+    if (name && name.trim() !== "") {
+      queryConditions.name = { $regex: name.trim(), $options: "i" };
+    }
+
+    // 5. Handle Professional Allocation Status Filtering
+    if (statusType === "Allocated") {
+      // Must have an active assigned Room ID link ($ne stands for Not Equal)
+      queryConditions.roomId = { $ne: null };
+    } else if (statusType === "Unassigned") {
+      // Room ID link is explicitly unallocated/null
+      queryConditions.roomId = null;
+    }
+
+    // 6. Execute direct find array with NO skips or limits
+    const students = await User.find(queryConditions)
+      .select("name email phone roomId stripeCustomerId hostelId createdAt")
+      .populate({
+        path: "roomId",
+        select: "roomNumber roomType maxCapicity status"
+      })
+      .sort({ name: 1 }); // Keeps the entire list alphabetized neatly A-Z
+
+    // 7. High-Fidelity Structural JSON Response Payload
     return res.status(200).json({
-      message: `${hostel.students.length} students found`,
-      data: hostel.students,
-      currentPage: page,
       success: true,
+      message: `Successfully loaded ${students.length} student records`,
+      data: students,
+      totalCount: students.length
     });
+
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
   }
 };
-
-
 export const transferStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { newRoomId } = req.body; // The target room (e.g., Room 3)
+    const { newRoomId } = req.body;
     const wardenId = req.user._id;
 
-    // Verify the warden manages this hostel environment scope
     const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
-      return res.status(404).json({ message: "Hostel authorization failed", success: false });
+      return res
+        .status(404)
+        .json({ message: "Hostel authorization failed", success: false });
     }
 
-    // 1. Fetch the target student to grab their current (old) room identity
     const student = await User.findById(studentId);
     if (!student) {
-      return res.status(404).json({ message: "Student profile not found", success: false });
+      return res
+        .status(404)
+        .json({ message: "Student profile not found", success: false });
     }
 
     const oldRoomId = student.roomId;
-
-    // Optional Safety: Check if they are trying to transfer to the room they are already in
     if (oldRoomId?.toString() === newRoomId) {
-      return res.status(400).json({ message: "Student is already allocated to this room", success: false });
-    }
-
-    // 2. Clear occupant space from the OLD room layout ledger
-    if (oldRoomId) {
-      await Room.findByIdAndUpdate(oldRoomId, {
-        $pull: { occupants: studentId },
-        $set: { status: "available" } // Set back to available as a vacancy opens up
+      return res.status(400).json({
+        message: "Student is already allocated to this room",
+        success: false,
       });
     }
 
-    // 3. Register occupant footprint inside the NEW target room capacity array
-    const targetRoom = await Room.findByIdAndUpdate(newRoomId, {
-      $addToSet: { occupants: studentId }
-    }, { new: true });
-
-    if (!targetRoom) {
-      return res.status(404).json({ message: "Target room configuration missing", success: false });
+    // Verify target room capacity availability on backend before moving
+    const targetRoomCheck = await Room.findById(newRoomId);
+    if (!targetRoomCheck) {
+      return res
+        .status(404)
+        .json({ message: "Target room layout does not exist", success: false });
     }
 
-    // 4. Update the room attachment context on the core student profile layout
-    await User.findByIdAndUpdate(studentId, {
-      roomId: newRoomId
+    const currentOccupantsCount = await User.countDocuments({
+      roomId: newRoomId,
+    });
+    if (currentOccupantsCount >= targetRoomCheck.maxCapicity) {
+      return res.status(400).json({
+        message: "Transfer rejected: Target room is full!",
+        success: false,
+      });
+    }
+
+    // 1. Clear occupant space from OLD room
+    if (oldRoomId) {
+      const updatedOldRoom = await Room.findByIdAndUpdate(
+        oldRoomId,
+        {
+          $pull: { occupants: studentId },
+        },
+        { new: true },
+      );
+
+      if (updatedOldRoom) {
+        await Room.findByIdAndUpdate(oldRoomId, {
+          $set: {
+            status:
+              updatedOldRoom.occupants.length < updatedOldRoom.maxCapicity
+                ? "available"
+                : "full",
+          },
+        });
+      }
+    }
+
+    // 2. Add to NEW room array
+    const updatedNewRoom = await Room.findByIdAndUpdate(
+      newRoomId,
+      {
+        $addToSet: { occupants: studentId },
+      },
+      { new: true },
+    );
+
+    // Update target room status directly on backend
+    await Room.findByIdAndUpdate(newRoomId, {
+      $set: {
+        status:
+          currentOccupantsCount + 1 >= updatedNewRoom.maxCapicity
+            ? "full"
+            : "available",
+      },
     });
 
-    // ─── REAL-TIME WEBSOCKET SYSTEM STREAM BROADCAST ───
-    const io = req.app.get("socketio");
+    // 3. Update core user profile reference link
+    await User.findByIdAndUpdate(studentId, { roomId: newRoomId });
+
+    // ─── WEBSOCKET STREAM BROADCAST ────────────────────────────────────
+    const io = req.app.get("socketio") || global.io;
     if (io) {
-      console.log("⚡ Broadcasting real-time room swap synchronization packages...");
-      io.emit("analytics_updated"); 
-      // Alert the UI grid to hot-reload both changing rooms simultaneously
+      console.log(
+        "⚡ Broadcasting real-time room swap synchronization packages...",
+      );
+      io.emit("analytics_updated");
       io.emit("room_layout_changed", { studentId, oldRoomId, newRoomId });
     }
 
-    return res.status(200).json({ 
-      message: `Student successfully relocated to room layout configuration`, 
-      success: true 
+    return res.status(200).json({
+      message:
+        "Student successfully relocated to new room layout configuration",
+      success: true,
     });
-
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
   }
@@ -281,71 +358,89 @@ export const getHostelAnalytics = async (req, res) => {
   try {
     const wardenId = req.user._id || req.user.id || req.user;
 
+    // 1. Fetch the hostel managed by this warden
     const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
       return res
         .status(404)
-        .json({ message: "Hostel not found", success: false });
+        .json({ message: "Hostel not found for this warden", success: false });
     }
 
     const hostelId = hostel._id;
 
-    // Fetch all rooms tied to this hostel
-    const rooms = await Room.find({ hostelId });
+    // 2. Fetch all rooms and all registered students concurrently
+    const [rooms, totalRegisteredStudents] = await Promise.all([
+      Room.find({ hostelId }),
+      User.find({ role: "student" }).select("roomId")
+    ]);
 
     let totalBeds = 0;
-    let occupiedRoomsCount = 0;
-    let completelyAvailableRoomsCount = 0;
+    let totalOccupiedBeds = 0;
+    
+    // ─── YOUR LOGIC COUNTERS ───────────────────────────────────────────
+    let usedRoomsCount = 0;           // At least 1 student inside
+    let fullyOccupiedRoomsCount = 0;  // Room capacity is 100% packed
+    let completelyEmptyRoomsCount = 0; // 0 students inside
+    // ───────────────────────────────────────────────────────────────────
 
-    // ─── NEW EXACT REAL-TIME ROOM MATH CALCULATION ─────────────────────────
+    // 3. Compute Real-Time Room States
     rooms.forEach((room) => {
-      // 1. Accumulate total physical bed counts across variable layouts
-      totalBeds += room.maxCapicity || 0;
+      const maxCap = room.maxCapicity || room.capacity || 0;
+      const occupantsCount = room.occupants ? room.occupants.length : 0;
+      
+      totalBeds += maxCap;
+      totalOccupiedBeds += occupantsCount;
 
-      // 2. Determine room usage based on actual active resident arrays
-      if (room.occupants && room.occupants.length > 0) {
-        // If even 1 student is in the room, it is counted as an occupied/used room
-        occupiedRoomsCount++;
+      // Exact Real-Time Structural Room Calculations
+      if (occupantsCount > 0) {
+        usedRoomsCount++; // It has students, so it's a "Used Room"
+        
+        if (occupantsCount >= maxCap) {
+          fullyOccupiedRoomsCount++; // It's packed to the max limit!
+        }
       } else {
-        // If occupants array is empty, the room is completely available
-        completelyAvailableRoomsCount++;
+        completelyEmptyRoomsCount++; // Nobody is inside
       }
     });
-    // ───────────────────────────────────────────────────────────────────────
 
+    // 4. Calculate Unassigned Students Dynamically
+    const hostelRoomIdsStrings = rooms.map(r => r._id.toString());
+    const unassignedStudentsCount = totalRegisteredStudents.filter(student => {
+      if (!student.roomId) return true;
+      return !hostelRoomIdsStrings.includes(student.roomId.toString());
+    }).length;
+
+    // 5. Finalize Dashboard Metrics
     const totalRooms = rooms.length;
-    const currentStudentsCount = hostel.students ? hostel.students.length : 0;
-    const availableBeds = totalBeds - currentStudentsCount;
+    const availableBeds = totalBeds - totalOccupiedBeds;
 
-    const occupancyRate =
-      totalBeds > 0
-        ? ((currentStudentsCount / totalBeds) * 100).toFixed(2)
-        : "0.00";
+    const occupancyRate = totalBeds > 0
+      ? ((totalOccupiedBeds / totalBeds) * 100).toFixed(0)
+      : "0";
 
-    const paidFeesCount = await Fee.countDocuments({
-      hostelId,
-      status: "paid",
-    });
-    const pendingFeesCount = await Fee.countDocuments({
-      hostelId,
-      status: "pending",
-    });
+    // 6. Fetch Financial State Identifiers
+    const paidFeesCount = await Fee.countDocuments({ hostelId, status: "paid" });
+    const pendingFeesCount = await Fee.countDocuments({ hostelId, status: "pending" });
 
+    // 7. Uniform Payload Delivery Matrix
     return res.status(200).json({
       success: true,
-      message: "Analytics fetched successfully",
+      message: "Hostel analytical indices synchronized successfully.",
       analytics: {
         hostelName: hostel.name,
         totalRooms: totalRooms,
         
-        // ─── THE NEW CORRECT ROOM FIELDS ────────────────────────────────────
-        occupiedRooms: occupiedRoomsCount,
-        availableRooms: completelyAvailableRoomsCount,
-        // ────────────────────────────────────────────────────────────────────
+        // ─── NEW ACCURATE ROOM METRICS ─────────────────────────────────
+        usedRooms: usedRoomsCount,                   // e.g., returns 3
+        fullyOccupiedRooms: fullyOccupiedRoomsCount, // e.g., returns 2
+        availableRooms: completelyEmptyRoomsCount,   // Empty rooms left
+        // ───────────────────────────────────────────────────────────────
         
         totalBeds: totalBeds,
-        occupiedBeds: currentStudentsCount,
+        occupiedBeds: totalOccupiedBeds,
         availableBeds: availableBeds,
+        unassignedStudents: unassignedStudentsCount,
+        
         hostelOccupancy: `${occupancyRate}%`,
         status: availableBeds > 0 ? "Available" : "Full",
         financials: {
@@ -354,13 +449,11 @@ export const getHostelAnalytics = async (req, res) => {
         },
       },
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message, success: false });
+    return res.status(500).json({ message: error.message, success: false });
   }
 };
-
-
-
 export const initializeRooms = async (req, res) => {
   try {
     const hostelId = req.user.hostelId;
@@ -468,14 +561,12 @@ export const initializeRooms = async (req, res) => {
   }
 };
 
-
 export const getRoomAvailability = async (req, res) => {
   try {
     const { hostelId } = req.user;
     const { roomNumber } = req.query;
 
     let query = { hostelId };
-
     if (roomNumber) {
       query.roomNumber = roomNumber;
     }
@@ -489,30 +580,43 @@ export const getRoomAvailability = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: roomNumber
-          ? `Room ${roomNumber} not found in this hostel.`
-          : "No rooms found in this hostel.",
+          ? `Room ${roomNumber} not found.`
+          : "No rooms registered.",
       });
     }
 
-    // Process room data along with actual student assignments
+    // Process everything on the backend to avoid frontend logic calculations
     const availabilityData = await Promise.all(
       rooms.map(async (room) => {
-        // CRITICAL UPGRADE: Find the actual student documents living in this specific room
-        const occupants = await User.find({ roomId: room._id })
-          .select("name email phone status"); // Grab useful client details
+        // Find existing users who have this room assigned
+        const occupants = await User.find({
+          roomId: room._id,
+          role: "student",
+        }).select("name email phone status");
 
         const occupiedSeats = occupants.length;
+        const availableSeats = Math.max(0, room.maxCapicity - occupiedSeats);
+
+        // CLEANUP BACKEND SYNC GUARD:
+        // If the database occupants array length doesn't match real active occupants, resync it
+        if (room.occupants.length !== occupiedSeats) {
+          await Room.findByIdAndUpdate(room._id, {
+            $set: { occupants: occupants.map((u) => u._id) },
+          });
+        }
 
         return {
-          _id: room._id, // Send ID for frontend key lists
+          _id: room._id,
           roomNumber: room.roomNumber,
-          roomType: room.type,
-          capacity: room.maxCapicity, 
+          roomType: room.type || "Standard",
+          capacity: room.maxCapicity,
           occupiedSeats: occupiedSeats,
-          availableSeats: room.maxCapicity - occupiedSeats,
-          isFull: occupiedSeats >= room.maxCapicity ? "Full" : "Available",
-          // CRITICAL UPGRADE: Return array of real profiles for frontend details/cards
-          residents: occupants 
+          availableSeats: availableSeats,
+          status:
+            occupiedSeats >= room.maxMaxCapicity || availableSeats === 0
+              ? "Full"
+              : "Available",
+          residents: occupants, // Verified list of real active profiles
         };
       }),
     );

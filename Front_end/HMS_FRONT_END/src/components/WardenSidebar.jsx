@@ -22,7 +22,7 @@ export default function WardenSidebar({ isCollapsed, setIsCollapsed }) {
     { label: "Dashboard Overview", path: "/warden", icon: <LayoutDashboard size={18} /> },
     { label: "Rooms Inventory", path: "/warden/rooms", icon: <BedDouble size={18} /> },
     { label: "Student Roster", path: "/warden/students", icon: <Users size={18} /> },
-    { label: "Complaints & Tickets", path: "/warden/complaints", icon: <ClipboardList size={18} /> }
+    { label: "Complaints & Tickets", path: "/warden/complaint", icon: <ClipboardList size={18} /> }
   ];
 
   return (

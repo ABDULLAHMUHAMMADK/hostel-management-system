@@ -15,7 +15,7 @@ const routes = express.Router();
 
 routes.post("/createHostel", verifyUser, authorize(["warden"]), createHostel);
 routes.get("/getHostel", verifyUser, authorize(["warden"]), getMyHostel);
-routes.put(
+routes.delete(
   "/remove-student/:studentId",
   verifyUser,
   authorize(["warden"]),
@@ -35,5 +35,4 @@ routes.get(
 );
 
 routes.put("/transfer-student/:studentId", verifyUser,authorize(["warden"]), transferStudent);
-
 export default routes;

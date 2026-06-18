@@ -48,19 +48,21 @@ export default function WardenOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Isolated data fetching engine so we can call it on mount AND on socket updates
+  // Isolated data fetching engine calling clean, unpaginated server endpoints
   const fetchDashboardData = async (showLoadingState = false) => {
     try {
       if (showLoadingState) setLoading(true);
       setError("");
+      
       const [analyticsRes, complaintsRes, feeRes] = await Promise.all([
         API.get("/hostel/analytics"),
         API.get("/complaint/get-complaint"),
         API.get("/fee/fee-stats"),
       ]);
-      if (analyticsRes.data.success) setAnalytics(analyticsRes.data.analytics);
-      if (complaintsRes.data.success) setComplaints(complaintsRes.data.data);
-      if (feeRes.data.success) setFeeStats(feeRes.data.stats);
+      
+      if (analyticsRes.data?.success) setAnalytics(analyticsRes.data.analytics);
+      if (complaintsRes.data?.success) setComplaints(complaintsRes.data.data);
+      if (feeRes.data?.success) setFeeStats(feeRes.data.stats);
     } catch (err) {
       console.error("Dashboard engine hydration failure:", err);
       setError("Could not load structural data analytics from server node.");
@@ -74,31 +76,38 @@ export default function WardenOverview() {
     fetchDashboardData(true);
   }, []);
 
-  // Real-time socket stream handler
+  // Real-time socket stream handler matching unallocated room triggers
   useEffect(() => {
     const socket = io("http://localhost:5000", {
       withCredentials: true
     });
 
-    socket.on("analytics_updated", (newFreshData) => {
-      console.log("⚡ Live update ping received via socket stream!", newFreshData);
-      
-      // CRITICAL FIX: Instead of relying on a potentially malformed or mismatched socket payload, 
-      // we immediately pull fresh, pristine data from your API in the background.
-      fetchDashboardData(false); 
-    });
+    const handleLiveStreamPing = () => {
+      console.log("⚡ Live update ping synchronized across system dashboards!");
+      fetchDashboardData(false); // Silent background pull ensures pristine values
+    };
+
+    socket.on("analytics_updated", handleLiveStreamPing);
+    socket.on("room_layout_changed", handleLiveStreamPing);
 
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  const occupancyPie = analytics
-    ? [
-        { name: "Occupied Beds", value: analytics.occupiedBeds },
-        { name: "Available Beds", value: analytics.availableBeds },
-      ]
-    : [];
+  // Defensively calculate values to prevent data field mismatches or zero breaks
+  const totalBedsCalculated = analytics?.totalBeds ?? 0;
+  const occupiedBedsCalculated = analytics?.occupiedBeds ?? 0;
+  
+  // Available beds fallback math ensures sync accuracy if a student is unassigned
+  const availableBedsCalculated = totalBedsCalculated >= occupiedBedsCalculated 
+    ? totalBedsCalculated - occupiedBedsCalculated 
+    : analytics?.availableBeds ?? 0;
+
+  const occupancyPie = [
+    { name: "Occupied Beds", value: occupiedBedsCalculated },
+    { name: "Available Beds", value: availableBedsCalculated },
+  ];
 
   const feePaid = feeStats.find((s) => s._id === "paid");
   const feePending = feeStats.find((s) => s._id === "pending");
@@ -106,6 +115,11 @@ export default function WardenOverview() {
 
   const PIE_COLORS = ["#00a896", "#1e293b"];
   const pendingComplaints = complaints.filter((c) => c.status !== "resolved");
+
+  // Dynamic Occupancy rate string generation
+  const calculatedOccupancyRate = totalBedsCalculated > 0 
+    ? `${Math.round((occupiedBedsCalculated / totalBedsCalculated) * 100)}%`
+    : "0%";
 
   if (loading) {
     return (
@@ -115,11 +129,7 @@ export default function WardenOverview() {
             <Skeleton key={i} className="h-24" />
           ))}
         </div>
-        <div 
-  className="grid grid-cols-1 lg:grid-cols-3 gap-5"
-  
-  style={{ flexGrow: 1 }}
->
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" style={{ flexGrow: 1 }}>
           <Skeleton className="h-full" />
           <Skeleton className="lg:col-span-2 h-full" />
         </div>
@@ -165,14 +175,14 @@ export default function WardenOverview() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <StatCard
           label="Total Residents"
-          value={analytics?.occupiedBeds ?? 0}
-          sub="Active registered students"
+          value={occupiedBedsCalculated}
+          sub={`Unassigned: ${analytics?.unassignedStudents ?? 0} students`}
           accent="#8b5cf6"
         />
         <StatCard
           label="Available Beds"
-          value={analytics?.availableBeds ?? 0}
-          sub={`Out of ${analytics?.totalBeds || 0} beds total`}
+          value={availableBedsCalculated}
+          sub={`Out of ${totalBedsCalculated} spaces total`}
           accent="#3b82f6"
         />
         <StatCard
@@ -183,14 +193,14 @@ export default function WardenOverview() {
         />
         <StatCard
           label="Total Bed Capacity"
-          value={`${analytics?.totalBeds || 0}`}
+          value={totalBedsCalculated}
           sub="Total structural slots available"
           accent="#eab308"
         />
       </div>
 
       {/* ─── Row 2: Balanced 3-Column Split Content Grid Layout ──────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5  min-h-0 pb-1" style={{ flexGrow: 1 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 min-h-0 pb-1" style={{ flexGrow: 1 }}>
         
         {/* LEFT PANEL: Occupancy Ratio Donut Ring Chart */}
         <div 
@@ -201,7 +211,7 @@ export default function WardenOverview() {
             Bed Occupancy Ratio
           </h3>
           <div className="relative w-full flex items-center justify-center min-h-0 py-2" style={{ flexGrow: 1 }}>
-            {analytics?.totalBeds > 0 ? (
+            {totalBedsCalculated > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -222,18 +232,18 @@ export default function WardenOverview() {
             ) : null}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-xl font-black text-slate-800 tracking-tight">
-                {analytics?.hostelOccupancy || "0%"}
+                {calculatedOccupancyRate}
               </span>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Filled</span>
             </div>
           </div>
         </div>
 
-        {/* MIDDLE PANEL: Upgraded Dynamic Room Sub-Metrics & Complaints Feed ──── */}
+        {/* MIDDLE PANEL: Dynamic Room Sub-Metrics & Complaints Feed ──── */}
         <div className="flex flex-col gap-4 h-full min-h-0">
           
           <div className="grid grid-cols-2 gap-4 shrink-0">
-            {/* Occupied Rooms Card */}
+            {/* Used Rooms Card (Any room containing >= 1 student) */}
             <div 
               className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               style={{ 
@@ -243,10 +253,10 @@ export default function WardenOverview() {
             >
               <div className="flex flex-col justify-center space-y-0.5">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                  Occupied Rooms
+                  Used Rooms
                 </span>
                 <span className="text-2xl font-black text-slate-800 tracking-tight block leading-tight">
-                  {analytics?.occupiedRooms ?? 0}
+                  {analytics?.usedRooms ?? 0}
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 block truncate leading-tight pt-0.5">
                   Out of {analytics?.totalRooms || 0} rooms
@@ -254,7 +264,7 @@ export default function WardenOverview() {
               </div>
             </div>
 
-            {/* Available Rooms Card */}
+            {/* Fully Occupied Rooms Card (Rooms hit 100% capacity threshold) */}
             <div 
               className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               style={{ 
@@ -264,13 +274,13 @@ export default function WardenOverview() {
             >
               <div className="flex flex-col justify-center space-y-0.5">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
-                  Available Rooms
+                  Fully Occupied
                 </span>
                 <span className="text-2xl font-black text-slate-800 tracking-tight block leading-tight">
-                  {analytics?.availableRooms ?? 0}
+                  {analytics?.fullyOccupiedRooms ?? 0}
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 block truncate leading-tight pt-0.5">
-                  Out of {analytics?.totalRooms || 0} rooms
+                  {analytics?.availableRooms ?? 0} entirely empty
                 </span>
               </div>
             </div>
@@ -316,7 +326,7 @@ export default function WardenOverview() {
 
         </div>
 
-        {/* RIGHT PANEL: Optimized, Clean Action Center Panel */}
+        {/* RIGHT PANEL: Action Center Panel */}
         <div 
           className="bg-white rounded-2xl p-4 flex flex-col h-full min-h-0"
           style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}

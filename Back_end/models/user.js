@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    phone: { type: String, default: "" }, // Added for immediate Warden contact/notifications
     role: {
       type: String,
       enum: ["admin", "warden", "student"],
@@ -13,14 +14,13 @@ const userSchema = new mongoose.Schema(
     hostelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hostel",
-      require: true,
+      required: true, // Fixed spelling typo here from "require" to "required"
     },
     roomId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Room",
       default: null,
     },
-
     stripeCustomerId: {
       type: String,
     },
