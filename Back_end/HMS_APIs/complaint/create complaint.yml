@@ -8,12 +8,13 @@ http:
   url: http://localhost:5000/api/complaint/create-complaint
   headers:
     - name: Authorization
-      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMjg3NDQ4YWFhZGY1MDE4ZGIzNGM2YyIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzgxMDM2MzcwLCJleHAiOjE3ODEwMzgxNzB9.aoO9m_xdr6vo1Z1UjnMzmeFzbVCndl0Xwk6AhGhpqF0
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMzdkNGMwMzk5MzU1ZjkyMjdhMDZmNiIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzgyMDQ0Mjc0LCJleHAiOjE3ODIwNDYwNzR9.Gp_3g-QEKOuNgBMUQJ-jXPRZYOAc_lvvwSS5afg4-_k
   body:
     type: json
     data: |-
-      {"title":"complaint for light kharab",
-      "description":"in our we have a small issue since from 2 days our rooom light is not working which makes us difficult to study at late night"
+      { "category": "electrical"
+        "title": "complaint for light kharab",
+        "description": "YALKAA WARDANA DA LIGHT SAM KNAA KNE PA KUNA BA ME DRTA MUGEE MANDALEE"
       }
   auth: inherit
 

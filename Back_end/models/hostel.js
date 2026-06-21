@@ -32,4 +32,4 @@ const hostelSchema = new mongoose.Schema({
   },
 });
 
-export const Hostel = mongoose.model("Hostel", hostelSchema);
+export const Hostel = mongoose.models.Hostel || mongoose.model("Hostel", hostelSchema);

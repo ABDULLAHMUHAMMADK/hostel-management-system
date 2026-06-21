@@ -23,10 +23,7 @@ export default function Register() {
     };
 
     try {
-      console.log(
-        "🚀 Frontend packaging dynamic registration cargo payload...",
-        payload,
-      );
+     
 
       const response = await API.post("/users", payload);
 
@@ -137,7 +134,7 @@ export default function Register() {
             >
               <option value="none">none</option>
               <option value="student">Student</option>
-              <option value="admin">Hostel Warden   </option>
+              <option value="warden">Hostel Warden   </option>
             </select>
           </div>
 

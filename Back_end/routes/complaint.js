@@ -2,6 +2,7 @@ import express from "express";
 import {
   createComplaint,
   getHostelComplaints,
+  getMyComplaints,
   resolveComplaint,
 } from "../controllers/complaint.js";
 import { authorize, verifyUser } from "../middleware/authMiddleware.js";
@@ -26,5 +27,8 @@ routes.patch(
   authorize(["warden"]),
   resolveComplaint,
 );
+
+
+routes.get("/my-complaints", verifyUser, authorize(["student"]), getMyComplaints);
 
 export default routes;

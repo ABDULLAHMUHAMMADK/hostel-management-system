@@ -33,4 +33,7 @@ routes.get(
 routes.get("/fee-stats", verifyUser, authorize(["warden"]), getFeeStats);
 routes.get("/defulters", verifyUser, authorize(["warden"]), getDefaulters);
 
+
+
+
 export default routes;

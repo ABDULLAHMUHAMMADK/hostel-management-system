@@ -8,33 +8,33 @@ const roomSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["single", "2-seater", "3-seater", "4-seater", "5-seater"],
+      enum: ["single", "double", "triple"],
       required: true,
     },
     maxCapicity: {
       type: Number,
       required: true,
     },
-    hostelId: {
-      type: mongoose.Schema.ObjectId,
-      ref: "Hostel",
-      required: true,
-    },
+    occupants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        // Ensure this string matches EXACTLY with the name used when creating the User model
+        ref: "user", 
+      },
+    ],
     status: {
       type: String,
       enum: ["available", "full"],
       default: "available",
     },
-    occupants: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "User",
-      },
-    ],
+    hostelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hostel",
+      required: true,
+    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-roomSchema.index({ roomNumber: 1, hostelId: 1 }, { unique: true });
-
-export const Room = mongoose.model("Room", roomSchema);
+// This safe check checks if the Room model is already compiled before creating a new one
+export const Room = mongoose.models.Room || mongoose.model("Room", roomSchema);

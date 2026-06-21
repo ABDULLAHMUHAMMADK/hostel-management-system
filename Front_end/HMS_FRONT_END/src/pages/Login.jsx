@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DotGridBg from "../components/DotGridBg";
 
-
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -21,8 +20,7 @@ export default function Login() {
     try {
       // Execute the global context auth handler routine
       const user = await login(email, password);
-     console.log("saida kna")
-     console.log(user)
+      console.log(user);
       // Routing logic: Read the role coming directly from your database user schema
       if (user.role === "warden") {
         navigate("/warden"); // Route the warden directly to their custom metrics shell
@@ -37,7 +35,10 @@ export default function Login() {
       console.log("Status Code Returned from Server:", err.response?.status);
       console.log("Error Payload Body from Server:", err.response?.data);
 
-      setError(err.response?.data?.message || "Invalid authentication account credentials.");
+      setError(
+        err.response?.data?.message ||
+          "Invalid authentication account credentials.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -45,21 +46,25 @@ export default function Login() {
 
   return (
     <div className="h-screen w-screen relative flex items-center justify-center bg-transparent overflow-hidden">
-      
       {/* Background Animated Grid Elements */}
       <DotGridBg />
 
       {/* Login Card Core Frame Box */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 
-      rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10 transition-all m-4">
-        
+      <div
+        className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 
+      rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10 transition-all m-4"
+      >
         {/* Branding Title */}
         <div className="text-center mb-8">
           <div className="h-12 w-12 rounded-xl bg-teal-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-3 shadow-md shadow-teal-600/20">
             H
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome Back</h2>
-          <p className="text-sm text-slate-500 mt-1">Access your system accommodation dashboard</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            Welcome Back
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Access your system accommodation dashboard
+          </p>
         </div>
 
         {error && (
@@ -71,7 +76,9 @@ export default function Login() {
         {/* Action Form Element */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-2">Email Address</label>
+            <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-2">
+              Email Address
+            </label>
             <input
               type="email"
               required
@@ -79,13 +86,17 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-teal-500 focus:bg-white transition-all text-slate-800 font-medium"
               placeholder="name@hostel.com"
+              autoComplete="off"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-2">Password System Code</label>
+            <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-2">
+              Password System Code
+            </label>
             <input
               type="password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +113,6 @@ export default function Login() {
             {isSubmitting ? "Verifying Credentials..." : "Sign In to System"}
           </button>
         </form>
-
       </div>
     </div>
   );

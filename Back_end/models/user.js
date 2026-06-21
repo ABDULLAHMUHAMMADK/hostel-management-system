@@ -14,7 +14,8 @@ const userSchema = new mongoose.Schema(
     hostelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hostel",
-      required: true, // Fixed spelling typo here from "require" to "required"
+      default: null,
+      // required: true, // Fixed spelling typo here from "require" to "required"
     },
     roomId: {
       type: mongoose.Schema.Types.ObjectId,

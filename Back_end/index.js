@@ -11,11 +11,13 @@ import userRoutes from "./routes/user.js";
 import hostelRoutes from "./routes/hostel.js";
 import complaintRoutes from "./routes/complaint.js";
 import feeRoutes from "./routes/fee.js";
+import noticeRoutes from "./routes/notice.js"
 import { dbConnection } from "./config/connection.js";
 const PORT = process.env.PORT;
 import { User } from "./models/user.js";
 import { Hostel } from "./models/hostel.js";
 import { Room } from "./models/room.js";
+import { Notice } from "./models/Notice.js";
 import { Complaint } from "./models/complaint.js";
 import { Fee } from "./models/fee.js";
 import { stripeWebhook } from "./controllers/fee.js";
@@ -63,6 +65,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/hostel", hostelRoutes);
 app.use("/api/complaint", complaintRoutes);
 app.use("/api/fee", feeRoutes);
+app.use("/api/notices", noticeRoutes);
 
 app.get("/data/user", async (req, res) => {
   try {

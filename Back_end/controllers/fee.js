@@ -69,17 +69,19 @@ export const generateMonthlyFees = async (req, res) => {
 };
 
 export const getStudentFees = async (req, res) => {
-  const studentId = req.user._id;
-
   try {
-    const fees = await Fee.findOne({ studentId }).sort({ createdAt: -1 });
-    res.status(200).json({
+    const studentId = req.user._id;
+
+    // Fixed from findOne to find so it returns a valid array of items
+    const fees = await Fee.find({ studentId }).sort({ createdAt: -1 });
+
+    return res.status(200).json({
       success: true,
       count: fees.length,
       data: fees,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -91,29 +93,37 @@ export const createCheckoutSession = async (req, res) => {
     const student = req.user;
     const { feeId, amount } = req.body;
 
+    if (!feeId || !amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing feeId or amount parameters in request body."
+      });
+    }
+
     const feeExists = await Fee.findById(feeId);
     if (!feeExists) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Fee record not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "Fee record missing from database." 
+      });
     }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
+      // These URLs will be caught by your frontend application later
       success_url: "http://127.0.0.1:5500/succes.html",
       cancel_url: "http://127.0.0.1:5500/reject.html",
-
       customer_email: student.email,
       line_items: [
         {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Hostel Fee - ${feeExists.month}`,
-              description: `Payment for student ${student.name}`,
+              name: `Hostel Housing Fee - ${feeExists.month || "Current Month"}`,
+              description: `Automated invoice clearing for resident student: ${student.name}`,
             },
-            unit_amount: amount * 100,
+            unit_amount: Math.round(amount * 100), // Ensures safely parsed integers for Stripe cents
           },
           quantity: 1,
         },
@@ -124,9 +134,15 @@ export const createCheckoutSession = async (req, res) => {
       },
     });
 
-    res.status(200).json({ success: true, url: session.url });
+    return res.status(200).json({ 
+      success: true, 
+      url: session.url 
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 };
 
@@ -171,6 +187,8 @@ export const getFeeStats = async (req, res) => {
         },
       },
     ]);
+
+
 
     res.status(200).json({ success: true, stats });
   } catch (error) {

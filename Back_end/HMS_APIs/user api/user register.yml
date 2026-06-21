@@ -9,8 +9,8 @@ http:
   body:
     type: json
     data: |-
-      // {"name":"hamid mir",
-      // "email":"mir@gmail.com",
+      // {"name":"abdullah",
+      // "email":"abd@gmail.com",
       // "password":"1234abcd",
       //  "role":"warden"
       //  }
@@ -18,13 +18,13 @@ http:
 
 
 
-      {"name":"chapoor",
-      "email":"chapor@gmail.com",
-      "password":"1234abcd",
-       "role":"student",
-       "hostelId":"6a0838ff66da7121592963db",
-       "roomId":"6a083b3866da7121592963ee"
-       }
+      // {"name":"sana",
+      // "email":"sana@gmail.com",
+      // "password":"1234abcd",
+      //  "role":"student",
+      //  "hostelId":"6a0838ff66da7121592963db",
+      //  "roomId":"6a083b3866da7121592963f5"
+      //  }
   auth: inherit
 
 settings:

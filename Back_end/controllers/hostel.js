@@ -153,40 +153,6 @@ export const removeStudent = async (req, res) => {
     return res.status(400).json({ message: error.message, success: false });
   }
 };
-export const updateHostel = async (req, res) => {
-  try {
-    const wardenId = req.user._id;
-    const updateData = req.body;
-
-    if (Object.keys(updateData).length === 0) {
-      return res
-        .status(404)
-        .json({ message: "Please fill at least one field", success: false });
-    }
-
-    const updateHostel = await Hostel.findOneAndUpdate(
-      { warden: wardenId },
-      updateData,
-      { new: true },
-    );
-
-    if (!updateHostel) {
-      return res
-        .status(404)
-        .json({ message: "Hostel not found for this user", success: false });
-    }
-
-    return res.status(200).json({
-      message: "hostel detail update successfully",
-      updateHostel,
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
-  }
-};
-
-
 
 export const searchStudent = async (req, res) => {
   try {
@@ -197,14 +163,15 @@ export const searchStudent = async (req, res) => {
     // 2. Locate the Warden's Hostel context
     const hostel = await Hostel.findOne({ warden: wardenId });
     if (!hostel) {
-      return res
-        .status(404)
-        .json({ message: "Hostel authorization failed for this warden", success: false });
+      return res.status(404).json({
+        message: "Hostel authorization failed for this warden",
+        success: false,
+      });
     }
 
     // 3. Establish base conditions targeting all accounts with the 'student' role
     const queryConditions = {
-      role: "student"
+      role: "student",
     };
 
     // 4. Handle Live Typing Search Input Filter
@@ -226,7 +193,7 @@ export const searchStudent = async (req, res) => {
       .select("name email phone roomId stripeCustomerId hostelId createdAt")
       .populate({
         path: "roomId",
-        select: "roomNumber roomType maxCapicity status"
+        select: "roomNumber roomType maxCapicity status",
       })
       .sort({ name: 1 }); // Keeps the entire list alphabetized neatly A-Z
 
@@ -235,9 +202,8 @@ export const searchStudent = async (req, res) => {
       success: true,
       message: `Successfully loaded ${students.length} student records`,
       data: students,
-      totalCount: students.length
+      totalCount: students.length,
     });
-
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
   }
@@ -352,8 +318,6 @@ export const transferStudent = async (req, res) => {
   }
 };
 
-
-
 export const getHostelAnalytics = async (req, res) => {
   try {
     const wardenId = req.user._id || req.user.id || req.user;
@@ -366,20 +330,22 @@ export const getHostelAnalytics = async (req, res) => {
         .json({ message: "Hostel not found for this warden", success: false });
     }
 
+    console.log(hostel);
+
     const hostelId = hostel._id;
 
     // 2. Fetch all rooms and all registered students concurrently
     const [rooms, totalRegisteredStudents] = await Promise.all([
       Room.find({ hostelId }),
-      User.find({ role: "student" }).select("roomId")
+      User.find({ role: "student" }).select("roomId"),
     ]);
 
     let totalBeds = 0;
     let totalOccupiedBeds = 0;
-    
+
     // ─── YOUR LOGIC COUNTERS ───────────────────────────────────────────
-    let usedRoomsCount = 0;           // At least 1 student inside
-    let fullyOccupiedRoomsCount = 0;  // Room capacity is 100% packed
+    let usedRoomsCount = 0; // At least 1 student inside
+    let fullyOccupiedRoomsCount = 0; // Room capacity is 100% packed
     let completelyEmptyRoomsCount = 0; // 0 students inside
     // ───────────────────────────────────────────────────────────────────
 
@@ -387,14 +353,14 @@ export const getHostelAnalytics = async (req, res) => {
     rooms.forEach((room) => {
       const maxCap = room.maxCapicity || room.capacity || 0;
       const occupantsCount = room.occupants ? room.occupants.length : 0;
-      
+
       totalBeds += maxCap;
       totalOccupiedBeds += occupantsCount;
 
       // Exact Real-Time Structural Room Calculations
       if (occupantsCount > 0) {
         usedRoomsCount++; // It has students, so it's a "Used Room"
-        
+
         if (occupantsCount >= maxCap) {
           fullyOccupiedRoomsCount++; // It's packed to the max limit!
         }
@@ -404,23 +370,30 @@ export const getHostelAnalytics = async (req, res) => {
     });
 
     // 4. Calculate Unassigned Students Dynamically
-    const hostelRoomIdsStrings = rooms.map(r => r._id.toString());
-    const unassignedStudentsCount = totalRegisteredStudents.filter(student => {
-      if (!student.roomId) return true;
-      return !hostelRoomIdsStrings.includes(student.roomId.toString());
-    }).length;
+    const hostelRoomIdsStrings = rooms.map((r) => r._id.toString());
+    const unassignedStudentsCount = totalRegisteredStudents.filter(
+      (student) => {
+        if (!student.roomId) return true;
+        return !hostelRoomIdsStrings.includes(student.roomId.toString());
+      },
+    ).length;
 
     // 5. Finalize Dashboard Metrics
     const totalRooms = rooms.length;
     const availableBeds = totalBeds - totalOccupiedBeds;
 
-    const occupancyRate = totalBeds > 0
-      ? ((totalOccupiedBeds / totalBeds) * 100).toFixed(0)
-      : "0";
+    const occupancyRate =
+      totalBeds > 0 ? ((totalOccupiedBeds / totalBeds) * 100).toFixed(0) : "0";
 
     // 6. Fetch Financial State Identifiers
-    const paidFeesCount = await Fee.countDocuments({ hostelId, status: "paid" });
-    const pendingFeesCount = await Fee.countDocuments({ hostelId, status: "pending" });
+    const paidFeesCount = await Fee.countDocuments({
+      hostelId,
+      status: "paid",
+    });
+    const pendingFeesCount = await Fee.countDocuments({
+      hostelId,
+      status: "pending",
+    });
 
     // 7. Uniform Payload Delivery Matrix
     return res.status(200).json({
@@ -429,18 +402,18 @@ export const getHostelAnalytics = async (req, res) => {
       analytics: {
         hostelName: hostel.name,
         totalRooms: totalRooms,
-        
+
         // ─── NEW ACCURATE ROOM METRICS ─────────────────────────────────
-        usedRooms: usedRoomsCount,                   // e.g., returns 3
+        usedRooms: usedRoomsCount, // e.g., returns 3
         fullyOccupiedRooms: fullyOccupiedRoomsCount, // e.g., returns 2
-        availableRooms: completelyEmptyRoomsCount,   // Empty rooms left
+        availableRooms: completelyEmptyRoomsCount, // Empty rooms left
         // ───────────────────────────────────────────────────────────────
-        
+
         totalBeds: totalBeds,
         occupiedBeds: totalOccupiedBeds,
         availableBeds: availableBeds,
         unassignedStudents: unassignedStudentsCount,
-        
+
         hostelOccupancy: `${occupancyRate}%`,
         status: availableBeds > 0 ? "Available" : "Full",
         financials: {
@@ -449,7 +422,6 @@ export const getHostelAnalytics = async (req, res) => {
         },
       },
     });
-
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
   }
@@ -628,5 +600,162 @@ export const getRoomAvailability = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateHostel = async (req, res) => {
+  try {
+    const { name, location } = req.body;
+
+    // 1. Validation: Check if at least one field is provided
+    if (!name && !location) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a hostel name or location to update.",
+      });
+    }
+
+    // 2. Prepare update payload dynamically
+    const updateData = {};
+    if (name) updateData.name = name.trim();
+    if (location) updateData.location = location.trim();
+
+    // 3. Find the hostel where the 'warden' field matches the logged-in user's ID
+    const updatedHostel = await Hostel.findOneAndUpdate(
+      { warden: req.user._id },
+      { $set: updateData },
+      { new: true, runValidators: true }, // returns the updated document and checks schema constraints
+    );
+
+    // 4. If no hostel matches this warden
+    if (!updatedHostel) {
+      return res.status(404).json({
+        success: false,
+        message: "No assigned hostel facility found for your warden account.",
+      });
+    }
+
+    // 5. Send back successful response
+    return res.status(200).json({
+      success: true,
+      message: "Hostel facility configuration updated successfully.",
+      data: updatedHostel,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "An error occurred while updating the hostel.",
+    });
+  }
+};
+
+export const getHostelProfile = async (req, res) => {
+  try {
+    // 1. Find the logged-in user by ID (supplied by verifyUser middleware)
+    const user = await User.findById(req.user._id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Warden identity record not found.",
+      });
+    }
+
+    // 2. Find the hostel explicitly linked to this warden to guarantee full population of name & location
+    const assignedHostel = await Hostel.findOne({ warden: user._id }).select(
+      "name location totalRooms students",
+    );
+    // console.log(assignedHostel)
+    // 3. Format the data package neatly for your frontend state mapping
+    const profilePayload = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      // Pass the full hostel sub-object so both 'name' and 'location' load into the React inputs
+      hostelId: assignedHostel
+        ? {
+            _id: assignedHostel._id,
+            name: assignedHostel.name,
+            location: assignedHostel.location,
+            totalRooms: assignedHostel.totalRooms,
+            studentCount: assignedHostel.students?.length || 0,
+          }
+        : null,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: profilePayload,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "An error occurred while fetching profile configurations.",
+    });
+  }
+};
+
+export const getStudentResidentialProfile = async (req, res) => {
+  try {
+    const studentId = req.user._id;
+
+    // Locate the room asset where this student's ID resides inside the occupants array
+    const roomAllocation = await Room.findOne({ occupants: studentId })
+      .populate({
+        path: "hostelId",
+        select: "name type", // Removed block from the query select block
+      })
+      .populate({
+        path: "occupants",
+        select: "name email",
+      });
+
+    if (!roomAllocation) {
+      return res.status(200).json({
+        success: true,
+        assigned: false,
+        message: "Student profile is active but awaiting room asset mapping.",
+        roomNumber: "Not Assigned",
+        hostelName: "Unassigned Hub",
+        roommates: [],
+        isSpaceAvailable: false,
+        slotsLeft: 0,
+      });
+    }
+
+    // Filter out the requesting student's own profile info from the companion list
+    const roommateNames = roomAllocation.occupants
+      .filter((occupant) => occupant._id.toString() !== studentId.toString())
+      .map((occupant) => occupant.name);
+
+    // Calculate live dynamic vacancy metrics using your schema keys
+    const currentOccupantCount = roomAllocation.occupants.length;
+    const maxCapacity = roomAllocation.maxCapicity || 0; // matching your spelling key variation
+    const slotsLeft = Math.max(0, maxCapacity - currentOccupantCount);
+    const isSpaceAvailable = slotsLeft > 0;
+
+    // Return payload with block completely removed, substituted with room occupancy statuses
+    return res.status(200).json({
+      success: true,
+      assigned: true,
+      roomNumber: roomAllocation.roomNumber,
+      roomType: roomAllocation.roomType,
+      hostelName: roomAllocation.hostelId?.name || "Campus Living Node",
+      roommates: roommateNames,
+      isSpaceAvailable: isSpaceAvailable,
+      slotsLeft: slotsLeft,
+    });
+  } catch (error) {
+    console.error("Residential parameter sync breakdown:", error.message);
+    return res.status(500).json({
+      success: false,
+      message:
+        "An internal server error occurred reading room parameters: " +
+        error.message,
+    });
   }
 };

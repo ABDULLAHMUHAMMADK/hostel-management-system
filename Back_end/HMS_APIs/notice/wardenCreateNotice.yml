@@ -1,0 +1,15 @@
+info:
+  name: wardenCreateNotice
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:5000/api/notices/create
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
