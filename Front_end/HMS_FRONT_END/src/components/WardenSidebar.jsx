@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -5,9 +6,10 @@ import {
   BedDouble,
   Users,
   ClipboardList,
-  Megaphone, // Imported for the notice board action
+  Megaphone, 
   ChevronLeft,
-  UserCheck
+  UserCheck,
+  CreditCard // Imported for the simple fee link action
 } from "lucide-react";
 
 export default function WardenSidebar({ isCollapsed, setIsCollapsed }) {
@@ -39,6 +41,11 @@ export default function WardenSidebar({ isCollapsed, setIsCollapsed }) {
       label: "Student Roster",
       path: "/warden/students",
       icon: <Users size={18} />,
+    },
+    {
+      label: "Fee Management",
+      path: "/warden/fees",
+      icon: <CreditCard size={18} />,
     },
     {
       label: "Complaints & Tickets",

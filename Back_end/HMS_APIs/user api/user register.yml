@@ -5,12 +5,12 @@ info:
 
 http:
   method: POST
-  url: http://localhost:5000/api/users/
+  url: http://localhost:5000/api/users
   body:
     type: json
     data: |-
-      // {"name":"abdullah",
-      // "email":"abd@gmail.com",
+      // {"name":"ali",
+      // "email":"ali@gmail.com",
       // "password":"1234abcd",
       //  "role":"warden"
       //  }
@@ -18,13 +18,13 @@ http:
 
 
 
-      // {"name":"sana",
-      // "email":"sana@gmail.com",
-      // "password":"1234abcd",
-      //  "role":"student",
-      //  "hostelId":"6a0838ff66da7121592963db",
-      //  "roomId":"6a083b3866da7121592963f5"
-      //  }
+      {"name":akhter,
+      "email":"akhter@gmail.com",
+      "password":"1234abcd",
+       "role":"student",
+       "hostelId":"6a35bbba10ad2e11a7a2a0e9",
+       "roomId":"6a35bbd910ad2e11a7a2a0f9"
+       }
   auth: inherit
 
 settings:

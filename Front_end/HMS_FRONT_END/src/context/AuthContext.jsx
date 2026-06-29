@@ -1,22 +1,34 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import API from "../api/client";
+import API, { injectLogoutTrigger } from "../api/client";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+
+    if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      window.location.href = "/login";
+    }
+  };
+
   useEffect(() => {
+    // Inject our state clearing logic right into Axios
+    injectLogoutTrigger(logout);
+
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-
-    console.log(storedToken, storedUser);
 
     if (storedToken && storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      setUser(null);
     }
 
     setLoading(false);
@@ -24,20 +36,13 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const response = await API.post("/users/login", { email, password });
-
-    const { token, user } = response.data;
+    const { token, user: userData } = response.data;
 
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(userData));
 
-    setUser(user);
-    return user;
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+    setUser(userData);
+    return userData;
   };
 
   return (

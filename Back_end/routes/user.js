@@ -1,8 +1,14 @@
 import express from "express";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
-import { userRegister, login, profile, updateProfile, changePassword, getMyRoommates } from "../controllers/user.js";
+import { userRegister, login, profile, updateProfile, changePassword, getMyRoommates, getSearchableHostels, getAvailableRoomsByHostel } from "../controllers/user.js";
 
 const routes = express.Router();
+
+
+routes.get("/hostels/search", getSearchableHostels);
+routes.get("/hostels/:hostelId/available-rooms", getAvailableRoomsByHostel);
+
+
 
 routes.post("/", userRegister);
 routes.post("/login", login);

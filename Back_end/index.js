@@ -7,6 +7,7 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 
+import adminRoutes from "./routes/admin.js";
 import userRoutes from "./routes/user.js";
 import hostelRoutes from "./routes/hostel.js";
 import complaintRoutes from "./routes/complaint.js";
@@ -21,6 +22,7 @@ import { Notice } from "./models/Notice.js";
 import { Complaint } from "./models/complaint.js";
 import { Fee } from "./models/fee.js";
 import { stripeWebhook } from "./controllers/fee.js";
+import AdminFee from "./models/AdminFee.js";
 
 const app = express();
 
@@ -66,6 +68,7 @@ app.use("/api/hostel", hostelRoutes);
 app.use("/api/complaint", complaintRoutes);
 app.use("/api/fee", feeRoutes);
 app.use("/api/notices", noticeRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/data/user", async (req, res) => {
   try {
@@ -106,6 +109,15 @@ app.get("/data/complaint", async (req, res) => {
 app.get("/data/fee", async (req, res) => {
   try {
     const data = await Fee.find();
+    res.json({ message: `total fee is ${data.length}`, data });
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
+app.get("/data/adminfee", async (req, res) => {
+  try {
+    const data = await AdminFee.find();
     res.json({ message: `total fee is ${data.length}`, data });
   } catch (error) {
     console.log(error.message);

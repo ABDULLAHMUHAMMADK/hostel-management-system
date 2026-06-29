@@ -11,6 +11,9 @@ import {
   transferStudent,
   getHostelProfile,
   getStudentResidentialProfile,
+  createWardenCheckoutSession,
+  getMyRentInvoices,
+  getStudentFees,
 } from "../controllers/hostel.js";
 import { verifyUser, authorize } from "../middleware/authMiddleware.js";
 const routes = express.Router();
@@ -45,6 +48,23 @@ routes.get(
   authorize(["student"]), 
   getStudentResidentialProfile
 );
+
+
+
+routes.post(
+  "/warden-pay-fee", 
+  verifyUser, 
+  authorize(["warden"]), 
+  createWardenCheckoutSession
+);
+
+
+
+
+
+routes.get("/my-rent-invoices", verifyUser, authorize(["warden"]), getMyRentInvoices);
+routes.get("/student-fees", verifyUser, authorize(["warden"]), getStudentFees);
+
 export default routes;
 
 

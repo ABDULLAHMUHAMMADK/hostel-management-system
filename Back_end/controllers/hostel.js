@@ -2,6 +2,7 @@ import { User } from "../models/user.js";
 import { Hostel } from "../models/hostel.js";
 import { Room } from "../models/room.js";
 import { Fee } from "../models/fee.js";
+import  AdminFee  from "../models/AdminFee.js";
 
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -169,9 +170,10 @@ export const searchStudent = async (req, res) => {
       });
     }
 
-    // 3. Establish base conditions targeting all accounts with the 'student' role
+    // 3. Establish base conditions targeting 'student' role AND enforce isolated hostel constraints 🔒
     const queryConditions = {
       role: "student",
+      hostelId: hostel._id, // 🚀 FIX: This forces the query to only look at THIS warden's hostel!
     };
 
     // 4. Handle Live Typing Search Input Filter
@@ -200,7 +202,7 @@ export const searchStudent = async (req, res) => {
     // 7. High-Fidelity Structural JSON Response Payload
     return res.status(200).json({
       success: true,
-      message: `Successfully loaded ${students.length} student records`,
+      message: `Successfully loaded ${students.length} student records for ${hostel.name}`,
       data: students,
       totalCount: students.length,
     });
@@ -208,6 +210,9 @@ export const searchStudent = async (req, res) => {
     return res.status(500).json({ message: error.message, success: false });
   }
 };
+
+
+
 export const transferStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -330,26 +335,28 @@ export const getHostelAnalytics = async (req, res) => {
         .json({ message: "Hostel not found for this warden", success: false });
     }
 
-    console.log(hostel);
-
     const hostelId = hostel._id;
 
-    // 2. Fetch all rooms and all registered students concurrently
-    const [rooms, totalRegisteredStudents] = await Promise.all([
-      Room.find({ hostelId }),
-      User.find({ role: "student" }).select("roomId"),
-    ]);
+    // 2. Fetch all rooms for this hostel
+    const rooms = await Room.find({ hostelId });
 
+    // 3. Get ALL students who belong to this hostel (from Hostel.students array)
+    // This is the key fix - we need students specifically in this hostel
+    const hostelStudents = await User.find({
+      _id: { $in: hostel.students },
+      role: "student"
+    }).select("roomId hostelId");
+
+    const totalStudents = hostelStudents.length;
+
+    // 4. Calculate room metrics
     let totalBeds = 0;
     let totalOccupiedBeds = 0;
+    let usedRoomsCount = 0;
+    let fullyOccupiedRoomsCount = 0;
+    let completelyEmptyRoomsCount = 0;
 
-    // ─── YOUR LOGIC COUNTERS ───────────────────────────────────────────
-    let usedRoomsCount = 0; // At least 1 student inside
-    let fullyOccupiedRoomsCount = 0; // Room capacity is 100% packed
-    let completelyEmptyRoomsCount = 0; // 0 students inside
-    // ───────────────────────────────────────────────────────────────────
-
-    // 3. Compute Real-Time Room States
+    // 5. Process rooms
     rooms.forEach((room) => {
       const maxCap = room.maxCapicity || room.capacity || 0;
       const occupantsCount = room.occupants ? room.occupants.length : 0;
@@ -357,35 +364,40 @@ export const getHostelAnalytics = async (req, res) => {
       totalBeds += maxCap;
       totalOccupiedBeds += occupantsCount;
 
-      // Exact Real-Time Structural Room Calculations
       if (occupantsCount > 0) {
-        usedRoomsCount++; // It has students, so it's a "Used Room"
-
+        usedRoomsCount++;
         if (occupantsCount >= maxCap) {
-          fullyOccupiedRoomsCount++; // It's packed to the max limit!
+          fullyOccupiedRoomsCount++;
         }
       } else {
-        completelyEmptyRoomsCount++; // Nobody is inside
+        completelyEmptyRoomsCount++;
       }
     });
 
-    // 4. Calculate Unassigned Students Dynamically
+    // 6. Calculate unassigned students within THIS hostel
+    // Students who have hostelId but no roomId OR roomId doesn't match any room in this hostel
     const hostelRoomIdsStrings = rooms.map((r) => r._id.toString());
-    const unassignedStudentsCount = totalRegisteredStudents.filter(
-      (student) => {
-        if (!student.roomId) return true;
-        return !hostelRoomIdsStrings.includes(student.roomId.toString());
-      },
-    ).length;
+    
+    const unassignedStudents = hostelStudents.filter((student) => {
+      // If student has no roomId at all
+      if (!student.roomId) return true;
+      // If student's roomId doesn't belong to this hostel's rooms
+      return !hostelRoomIdsStrings.includes(student.roomId.toString());
+    });
 
-    // 5. Finalize Dashboard Metrics
-    const totalRooms = rooms.length;
+    const unassignedStudentsCount = unassignedStudents.length;
+
+    // 7. Calculate assigned students
+    const assignedStudents = totalStudents - unassignedStudentsCount;
+
+    // 8. Available beds calculation
     const availableBeds = totalBeds - totalOccupiedBeds;
 
-    const occupancyRate =
-      totalBeds > 0 ? ((totalOccupiedBeds / totalBeds) * 100).toFixed(0) : "0";
+    const occupancyRate = totalBeds > 0 
+      ? ((totalOccupiedBeds / totalBeds) * 100).toFixed(0) 
+      : "0";
 
-    // 6. Fetch Financial State Identifiers
+    // 9. Fetch Financial State
     const paidFeesCount = await Fee.countDocuments({
       hostelId,
       status: "paid",
@@ -395,25 +407,22 @@ export const getHostelAnalytics = async (req, res) => {
       status: "pending",
     });
 
-    // 7. Uniform Payload Delivery Matrix
+    // 10. Return complete analytics
     return res.status(200).json({
       success: true,
       message: "Hostel analytical indices synchronized successfully.",
       analytics: {
         hostelName: hostel.name,
-        totalRooms: totalRooms,
-
-        // ─── NEW ACCURATE ROOM METRICS ─────────────────────────────────
-        usedRooms: usedRoomsCount, // e.g., returns 3
-        fullyOccupiedRooms: fullyOccupiedRoomsCount, // e.g., returns 2
-        availableRooms: completelyEmptyRoomsCount, // Empty rooms left
-        // ───────────────────────────────────────────────────────────────
-
+        totalRooms: rooms.length,
+        usedRooms: usedRoomsCount,
+        fullyOccupiedRooms: fullyOccupiedRoomsCount,
+        availableRooms: completelyEmptyRoomsCount,
         totalBeds: totalBeds,
         occupiedBeds: totalOccupiedBeds,
         availableBeds: availableBeds,
+        totalStudents: totalStudents, // ✅ NEW: Total students in hostel
+        assignedStudents: assignedStudents, // ✅ NEW: Students with rooms
         unassignedStudents: unassignedStudentsCount,
-
         hostelOccupancy: `${occupancyRate}%`,
         status: availableBeds > 0 ? "Available" : "Full",
         financials: {
@@ -422,10 +431,16 @@ export const getHostelAnalytics = async (req, res) => {
         },
       },
     });
+
   } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
+    console.error("Analytics Error:", error);
+    return res.status(500).json({ 
+      message: error.message, 
+      success: false 
+    });
   }
 };
+
 export const initializeRooms = async (req, res) => {
   try {
     const hostelId = req.user.hostelId;
@@ -756,6 +771,128 @@ export const getStudentResidentialProfile = async (req, res) => {
       message:
         "An internal server error occurred reading room parameters: " +
         error.message,
+    });
+  }
+};
+
+export const getMyRentInvoices = async (req, res) => {
+  try {
+    const wardenId = req.user._id;
+    
+    // Find all invoices billed to this warden
+    const invoices = await AdminFee.find({ wardenId }).sort({ createdAt: -1 });
+    
+    // Calculate quick analytic stats for the top cards
+    let unpaid = 0;
+    let paid = 0;
+    
+    invoices.forEach((inv) => {
+      if (inv.status === "paid") {
+        paid += inv.amount;
+      } else {
+        unpaid += inv.amount;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      invoices,
+      stats: { unpaid, paid },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 👤 Endpoint 2: Get Student Fees for this Warden's Hostel
+export const getStudentFees = async (req, res) => {
+  try {
+    const warden = req.user; // Assuming your auth middleware puts hostel information on req.user
+    
+    // Find all student fees belonging to this specific hostel
+    const fees = await Fee.find({ hostelId: warden.hostelId })
+    .populate("studentId", "name email") // Attaches student name/email cleanly
+    .sort({ createdAt: -1 });
+    
+    // Calculate quick metric stats for student collections
+    let unpaid = 0;
+    let paid = 0;
+    
+    fees.forEach((fee) => {
+      if (fee.status === "paid") {
+        paid += fee.amount;
+      } else {
+        unpaid += fee.amount;
+      }
+    });
+    
+    return res.status(200).json({
+      success: true,
+      fees,
+      stats: { unpaid, paid },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const createWardenCheckoutSession = async (req, res) => {
+  try {
+    // 💡 1. Identify the warden automatically from the token session
+    const warden = req.user; 
+
+    // 💡 2. Automatically locate the oldest unpaid bill for this specific warden
+    const pendingRentInvoice = await AdminFee.findOne({
+      wardenId: warden._id,
+      status: "pending"
+    }).sort({ createdAt: 1 }); // 1 sorts by oldest first so they pay chronologically
+
+    // If no pending bills exist, stop and inform them
+    if (!pendingRentInvoice) {
+      return res.status(444).json({
+        success: false,
+        message: "Great news! You have no outstanding pending rent invoices to settle right now.",
+      });
+    }
+
+    const secureAmount = pendingRentInvoice.amount;
+
+    // 💡 3. Create the automated checkout session using the database values found
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      success_url: "http://localhost:5173/warden/fees?status=success",
+      cancel_url: "http://localhost:5173/warden/fees?status=cancelled",
+      customer_email: warden.email,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Hostel Building Rent - ${pendingRentInvoice.month}`,
+              description: `Automated system payment for Hostel ID: ${pendingRentInvoice.hostelId}`,
+            },
+            unit_amount: Math.round(secureAmount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        type: "hostel_corporate_rent",
+        feeId: pendingRentInvoice._id.toString(),
+        wardenId: warden._id.toString(),
+        hostelId: pendingRentInvoice.hostelId.toString(),
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      url: session.url,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 };

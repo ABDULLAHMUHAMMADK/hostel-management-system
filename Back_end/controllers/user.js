@@ -5,15 +5,53 @@ import { Room } from "../models/room.js";
 import bcrypt from "bcryptjs";
 
 
+
+// Fetch ALL hostels unconditionally
+export const getSearchableHostels = async (req, res) => {
+  try {
+    // Completely bypass query parameters and grab everything
+    const hostels = await Hostel.find({}).select("name _id");
+    
+    return res.status(200).json({ success: true, hostels });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getAvailableRoomsByHostel = async (req, res) => {
+  try {
+    const { hostelId } = req.params;
+    
+    // 1. Find rooms belonging to this hostel where status is NOT full
+    // FIX: Changed maxCapacity to maxCapicity to match your exact schema spelling
+    const rooms = await Room.find({ 
+      hostelId, 
+      status: { $ne: "full" } 
+    }).select("roomNumber maxCapicity occupants _id");
+
+    // 2. Filter array where active occupants length is strictly below max capacity allowance
+    const availableRooms = rooms.filter(room => {
+      const maxBeds = room.maxCapicity || 0;
+      const currentOccupants = room.occupants ? room.occupants.length : 0;
+      return currentOccupants < maxBeds;
+    });
+
+    // Returns the filtered list (could be empty [] if none are free, or if no rooms exist yet)
+    return res.status(200).json({ success: true, rooms: availableRooms });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const userRegister = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, phone, role } = req.body;
 
     // 1. Core structural validations for EVERYONE
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return res.status(400).json({
         success: false,
-        message: "Please fill name, email, and password fields properly",
+        message: "Please fill name, email, password, and phone fields properly",
       });
     }
 
@@ -26,9 +64,11 @@ export const userRegister = async (req, res) => {
     }
 
     const targetRole = role || "student";
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+
     // 2. Handle Student Setup explicitly
     if (targetRole === "student") {
-      console.log("hello")
       const { hostelId, roomId } = req.body;
 
       if (!hostelId || hostelId.trim() === "") {
@@ -54,27 +94,23 @@ export const userRegister = async (req, res) => {
         return res.status(404).json({ success: false, message: "Room not found." });
       }
 
-      if (room.occupants.length >= room.maxCapicity) {
+      const maxCap = room.maxCapacity || room.maxCapicity;
+      if (room.occupants.length >= maxCap) {
         return res.status(400).json({ success: false, message: "Room is already full!" });
       }
 
-      const isNowFull = room.occupants.length + 1 >= room.maxCapicity;
+      const isNowFull = room.occupants.length + 1 >= maxCap;
 
-      // Safe password hash setup
-      const salt = await bcrypt.genSalt(10);
-      const hashPassword = await bcrypt.hash(password, salt);
-
-      // Create Student
       const newStudent = await User.create({
         name,
         email,
         password: hashPassword,
+        phone,
         role: "student",
         hostelId,
         roomId
       });
 
-      // Update structural links
       linkedHostel.students.push(newStudent._id);
       await linkedHostel.save();
 
@@ -82,13 +118,12 @@ export const userRegister = async (req, res) => {
         $push: { occupants: newStudent._id },
         $set: { status: isNowFull ? "full" : "available" },
       });
-console.log("hello")
-      // Sockets live updates stream
+
       if (global.io) {
         try {
           const totalRooms = await Room.countDocuments({ hostelId });
           const roomsArray = await Room.find({ hostelId });
-          const totalBeds = roomsArray.reduce((acc, curr) => acc + (curr.maxCapicity || 0), 0);
+          const totalBeds = roomsArray.reduce((acc, curr) => acc + (curr.maxCapacity || curr.maxCapicity || 0), 0);
           const occupiedBeds = await User.countDocuments({ hostelId, role: "student" });
           const availableBeds = Math.max(0, totalBeds - occupiedBeds);
           const occupancyPercentage = totalBeds > 0 ? `${((occupiedBeds / totalBeds) * 100).toFixed(2)}%` : "0%";
@@ -113,37 +148,75 @@ console.log("hello")
         data: newStudent,
       });
     }
-    // 3. Handle Warden Setup explicitly (Ignores hostelId & roomId completely during registration)
+
+    // 3. Handle Warden Setup explicitly with combined Hostel profile attachment
     if (targetRole === "warden") {
-      const salt = await bcrypt.genSalt(10);
-      const hashPassword = await bcrypt.hash(password, salt);
-console.log("hello")
+      const { hostelName, hostelLocation, totalRooms } = req.body;
+
+      if (!hostelName || !hostelLocation || !totalRooms) {
+        return res.status(400).json({
+          success: false,
+          message: "Wardens must provide hostel name, location, and total room limits",
+        });
+      }
+
+      // Create Warden user framework entity first
       const newWarden = await User.create({
         name,
         email,
         password: hashPassword,
-        role: "warden",
-        // Forces these fields to be completely absent/undefined so MongoDB bypasses validations
-        hostelId: undefined, 
-        roomId: undefined
+        phone,
+        role: "warden"
+      });
+
+      // Directly assemble the linked Hostel data record profile
+      const newHostel = await Hostel.create({
+        name: hostelName,
+        location: hostelLocation,
+        totalRooms: Number(totalRooms),
+        warden: newWarden._id
+      });
+
+      // Map references crosswise 
+      newWarden.hostelId = newHostel._id;
+      await newWarden.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Warden account and corresponding campus profile configured successfully!",
+        data: {
+          warden: newWarden,
+          hostel: newHostel
+        },
+      });
+    }
+
+    // 4. Handle Admin Setup explicitly
+    if (targetRole === "admin") {
+      const newAdmin = await User.create({
+        name,
+        email,
+        password: hashPassword,
+        phone,
+        role: "admin"
       });
 
       return res.status(201).json({
         success: true,
-        message: "Warden registered successfully without property ties",
-        data: newWarden,
+        message: "Master Admin registered successfully",
+        data: newAdmin,
       });
     }
 
   } catch (error) {
     console.log("Registration engine failure:", error.message);
-  
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -155,30 +228,17 @@ export const login = async (req, res) => {
       });
     }
 
-    const findUser = await User.findOne({
-      email,
-    });
+    const findUser = await User.findOne({ email });
 
-    // if (findUser && (await bcrypt.compare(password, findUser.password))) {
-    //   return res.status(200).json({
-    //     message: `Welcome ${findUser.name}, You are now loged in`,
-    //     success: true,
-    //     token: generateToken(findUser._id, findUser.role),
-    //   });
-    // } 
-    
-    
-    
     if (findUser && (await bcrypt.compare(password, findUser.password))) {
       return res.status(200).json({
-        message: `Welcome ${findUser.name}, You are now loged in`,
+        message: `Welcome ${findUser.name}, You are now logged in`,
         success: true,
         token: generateToken(findUser._id, findUser.role),
-        // ADD THIS LINE HERE: Sends the necessary profile properties straight to React
         user: {
           id: findUser._id,
           name: findUser.name,
-          role: findUser.role, // "warden" or "student"
+          role: findUser.role, // Will now correctly report "admin", "warden", or "student"
           hostelId: findUser.hostelId || null
         }
       });
@@ -194,18 +254,11 @@ export const login = async (req, res) => {
 
 export const profile = async (req, res) => {
   try {
-    // Added .select("-password") to ensure security hashes never leak to the client side
     const user = await User.findById(req.user._id)
       .select("-password")
       .populate([
-        {
-          path: "roomId",
-          select: "roomNumber type",
-        },
-        {
-          path: "hostelId",
-          select: "name",
-        },
+        { path: "roomId", select: "roomNumber type" },
+        { path: "hostelId", select: "name" },
       ]);
 
     if (!user) {
@@ -233,17 +286,9 @@ export const updateProfile = async (req, res) => {
   try {
     const { name, email, phone } = req.body;
 
-    // Find the user and update only the allowed fields
-    // { new: true } returns the updated document instead of the old one
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { 
-        $set: { 
-          name, 
-          email, 
-          phone 
-        } 
-      },
+      { $set: { name, email, phone } },
       { new: true, runValidators: true }
     ).select("-password");
 
@@ -268,8 +313,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-
-
 export const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -281,7 +324,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Find the user with the password included explicitly
     const user = await User.findById(req.user._id).select("+password");
     if (!user) {
       return res.status(404).json({
@@ -290,7 +332,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({
@@ -299,10 +340,8 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Hash the new password before saving
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
-    
     await user.save();
 
     return res.status(200).json({
@@ -318,14 +357,11 @@ export const changePassword = async (req, res) => {
   }
 };
 
-
-
 export const getMyRoommates = async (req, res) => {
   try {
     const studentId = req.user._id;
     const roomId = req.user.roomId;
 
-    // 1. If the student doesn't have a room assigned yet, return an empty array gracefully
     if (!roomId) {
       return res.status(200).json({
         success: true,
@@ -334,12 +370,10 @@ export const getMyRoommates = async (req, res) => {
       });
     }
 
-    // 2. Find the room and populate the occupants array with their names, emails, and phone numbers
-    const roomDetails = await Room.findById(roomId)
-      .populate({
-        path: "occupants",
-        select: "name email phone role"
-      });
+    const roomDetails = await Room.findById(roomId).populate({
+      path: "occupants",
+      select: "name email phone role"
+    });
 
     if (!roomDetails) {
       return res.status(404).json({
@@ -348,7 +382,6 @@ export const getMyRoommates = async (req, res) => {
       });
     }
 
-    // 3. Filter out the logged-in student so they only see their *roommates*, not themselves
     const roommates = roomDetails.occupants.filter(
       (occupant) => occupant._id.toString() !== studentId.toString()
     );
@@ -360,7 +393,6 @@ export const getMyRoommates = async (req, res) => {
       roomType: roomDetails.type,
       data: roommates
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -369,6 +401,3 @@ export const getMyRoommates = async (req, res) => {
     });
   }
 };
-
-
-

@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-const feeSchema = new mongoose.Schema(
+const adminFeeSchema = new mongoose.Schema(
   {
-    studentId: {
+    wardenId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,
@@ -17,7 +17,7 @@ const feeSchema = new mongoose.Schema(
       required: true,
     },
     month: {
-      type: String,
+      type: String, // e.g., "July 2026"
       required: true,
     },
     status: {
@@ -26,8 +26,8 @@ const feeSchema = new mongoose.Schema(
       default: "pending",
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-export const Fee = mongoose.model("Fee", feeSchema);
-
+const AdminFee = mongoose.model("AdminFee", adminFeeSchema);
+export default AdminFee;

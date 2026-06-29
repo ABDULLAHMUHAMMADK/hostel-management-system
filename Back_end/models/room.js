@@ -8,7 +8,7 @@ const roomSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["single", "double", "triple"],
+      enum: ["single", "double", "triple", "4-seater", "5-seater", "2-seater", "3-seater"],
       required: true,
     },
     maxCapicity: {
@@ -18,8 +18,7 @@ const roomSchema = new mongoose.Schema(
     occupants: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        // Ensure this string matches EXACTLY with the name used when creating the User model
-        ref: "user", 
+        ref: "user",
       },
     ],
     status: {
@@ -36,5 +35,4 @@ const roomSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// This safe check checks if the Room model is already compiled before creating a new one
 export const Room = mongoose.models.Room || mongoose.model("Room", roomSchema);

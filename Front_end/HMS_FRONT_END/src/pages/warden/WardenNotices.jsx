@@ -96,7 +96,7 @@ export default function WardenNotices() {
         ].map((item, idx) => (
           <div 
             key={idx} 
-            className="group relative bg-white rounded-xl p-4 border border-slate-100 overflow-hidden"
+            className="group relative bg-white rounded-xl p-4 overflow-hidden"
             style={globalShadow}
           >
             <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] ${item.color} rounded-r-md transition-all duration-300 group-hover:h-full group-hover:top-0 group-hover:translate-y-0`} />
@@ -106,7 +106,7 @@ export default function WardenNotices() {
                 <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">{item.label}</p>
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">{item.count}</h3>
               </div>
-              <div className={`p-2.5 rounded-lg bg-slate-50 ${item.text} border border-slate-100 transition-colors duration-300 group-hover:bg-slate-100`}>
+              <div className={`p-2.5 rounded-lg bg-slate-50 ${item.text} transition-colors duration-300 group-hover:bg-slate-100`}>
                 {item.icon}
               </div>
             </div>
@@ -116,8 +116,8 @@ export default function WardenNotices() {
 
       {/* FEEDBACK STATUS BAR */}
       {(error || success) && (
-        <div style={globalShadow} className={`p-2.5 border rounded-xl text-xs font-semibold flex items-center gap-3 shrink-0 ${
-          success ? "bg-emerald-50 border-emerald-100 text-emerald-800" : "bg-rose-50 border-rose-100 text-rose-800"
+        <div style={globalShadow} className={`p-2.5 rounded-xl text-xs font-semibold flex items-center gap-3 shrink-0 ${
+          success ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800"
         }`}>
           <Bell size={14} className="shrink-0" />
           <p className="truncate">{error || success}</p>
@@ -130,7 +130,7 @@ export default function WardenNotices() {
         {/* COMPARTMENT A: FULL HEIGHT INDEPENDENT CREATION SYSTEM */}
         <div className="lg:col-span-1 flex flex-col min-h-0">
           <div 
-            className="group relative bg-white rounded-xl p-5 border border-slate-100 flex flex-col flex-1 min-h-0 overflow-hidden"
+            className="group relative bg-white rounded-xl p-5 flex flex-col flex-1 min-h-0 overflow-hidden"
             style={globalShadow}
           >
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] bg-indigo-600 rounded-r-md transition-all duration-300 group-hover:h-full group-hover:top-0 group-hover:translate-y-0" />
@@ -150,7 +150,7 @@ export default function WardenNotices() {
                     value={form.title} 
                     onChange={e => setForm({...form, title: e.target.value})}
                     placeholder="e.g., Scheduled Block-A Maintenance" 
-                    className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white shadow-inner" 
+                    className="w-full text-xs font-semibold bg-slate-50 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white shadow-inner" 
                   />
                 </div>
 
@@ -159,7 +159,7 @@ export default function WardenNotices() {
                   <select 
                     value={form.category} 
                     onChange={e => setForm({...form, category: e.target.value})}
-                    className="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white cursor-pointer shadow-inner"
+                    className="w-full text-xs font-semibold bg-slate-50 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white cursor-pointer shadow-inner"
                   >
                     <option value="general">General Directive</option>
                     <option value="emergency">Critical / Emergency</option>
@@ -175,7 +175,7 @@ export default function WardenNotices() {
                     value={form.description} 
                     onChange={e => setForm({...form, description: e.target.value})}
                     placeholder="Provide full details regarding the notice scope..." 
-                    className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white resize-none flex-1 min-h-[80px] shadow-inner" 
+                    className="w-full text-xs font-medium bg-slate-50 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white resize-none flex-1 min-h-[80px] shadow-inner" 
                   />
                 </div>
 
@@ -194,14 +194,14 @@ export default function WardenNotices() {
         {/* COMPARTMENT B: LOG RECORD STREAM AND GRAPH CONSOLIDATED ROW */}
         <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
           
-          {/* THE MAIN STREAM LOGS BOARD - Expanded automatically via flex-1 */}
+          {/* THE MAIN STREAM LOGS BOARD */}
           <div 
-            className="group relative flex-1 bg-white rounded-xl p-5 border border-slate-100 flex flex-col min-h-0 overflow-hidden"
+            className="group relative flex-1 bg-white rounded-xl p-5 flex flex-col min-h-0 overflow-hidden"
             style={globalShadow}
           >
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] bg-slate-400 rounded-r-md transition-all duration-300 group-hover:h-full group-hover:top-0 group-hover:translate-y-0" />
             
-            <div className="flex items-center gap-2 text-slate-700 pb-2.5 border-b border-slate-100 shrink-0 pl-2">
+            <div className="flex items-center gap-2 text-slate-700 pb-2.5 shrink-0 pl-2">
               <Clock size={14} className="text-slate-400" />
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Notice Board Records</h3>
             </div>
@@ -211,10 +211,11 @@ export default function WardenNotices() {
                 notices.map((notice) => (
                   <div 
                     key={notice._id} 
-                    className="group/item relative bg-white border border-slate-100 rounded-xl p-3.5 hover:bg-slate-50/50 overflow-hidden"
+                    className="relative bg-white rounded-xl p-3.5 overflow-hidden"
                     style={{ boxShadow: "rgba(0, 0, 0, 0.08) 0px 4px 12px" }}
                   >
-                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] rounded-r-md transition-all duration-200 group-hover/item:h-full group-hover/item:top-0 group-hover/item:translate-y-0 ${
+                    {/* Fixed Static Left Border Item Only - No Center Expand Hover Effect */}
+                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] rounded-r-md ${
                       notice.category === "emergency" ? "bg-rose-500" :
                       notice.category === "maintenance" ? "bg-amber-500" : "bg-indigo-600"
                     }`} />
@@ -230,20 +231,20 @@ export default function WardenNotices() {
                           </div>
                         </div>
 
-                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
-                          notice.category === "emergency" ? "bg-rose-50 border-rose-200 text-rose-700" :
-                          notice.category === "maintenance" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-slate-100 border-slate-200 text-slate-700"
+                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                          notice.category === "emergency" ? "bg-rose-50 text-rose-700" :
+                          notice.category === "maintenance" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-700"
                         }`}>{notice.category}</span>
                       </div>
 
-                      <p className="text-[11px] text-slate-600 font-medium leading-relaxed whitespace-pre-line bg-slate-50/50 p-2.5 rounded-lg border border-slate-100/70">
+                      <p className="text-[11px] text-slate-600 font-medium leading-relaxed whitespace-pre-line bg-slate-50/50 p-2.5 rounded-lg">
                         {notice.description}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="h-full flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl p-8 text-center">
+                <div className="h-full flex flex-col items-center justify-center rounded-xl p-8 text-center bg-slate-50/50">
                   <Megaphone size={24} className="text-slate-300 mb-2" />
                   <p className="text-[11px] font-bold text-slate-400">No active announcements discovered.</p>
                 </div>
@@ -251,9 +252,9 @@ export default function WardenNotices() {
             </div>
           </div>
 
-          {/* LOWER FIXED COLUMN CHART CARD - Reduced slightly to h-36 */}
+          {/* LOWER FIXED COLUMN CHART CARD */}
           <div 
-            className="group relative bg-white rounded-xl p-4 border border-slate-100 shrink-0 h-36 overflow-hidden"
+            className="group relative bg-white rounded-xl p-4 shrink-0 h-36 overflow-hidden"
             style={globalShadow}
           >
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[45%] bg-slate-700 rounded-r-md transition-all duration-300 group-hover:h-full group-hover:top-0 group-hover:translate-y-0" />
@@ -263,16 +264,15 @@ export default function WardenNotices() {
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">Alert Volume Share</h2>
               </div>
               
-              {/* VERTICAL STACK COLUMN ROWS */}
               <div className="flex flex-col gap-1.5 mt-1">
                 {[
-                  { name: "Emergency Alerts", value: metrics.emergency, max: metrics.total, color: "bg-rose-500", bg: "bg-rose-50/50", text: "text-rose-700", border: "border-rose-100" },
-                  { name: "Maintenance Logs", value: metrics.maintenance, max: metrics.total, color: "bg-amber-500", bg: "bg-amber-50/50", text: "text-amber-700", border: "border-amber-100" },
-                  { name: "General Directives", value: metrics.general, max: metrics.total, color: "bg-emerald-500", bg: "bg-emerald-50/50", text: "text-emerald-700", border: "border-emerald-100" }
+                  { name: "Emergency Alerts", value: metrics.emergency, max: metrics.total, color: "bg-rose-500", bg: "bg-rose-50/50", text: "text-rose-700" },
+                  { name: "Maintenance Logs", value: metrics.maintenance, max: metrics.total, color: "bg-amber-500", bg: "bg-amber-50/50", text: "text-amber-700" },
+                  { name: "General Directives", value: metrics.general, max: metrics.total, color: "bg-emerald-500", bg: "bg-emerald-50/50", text: "text-emerald-700" }
                 ].map((bar, bIdx) => {
                   const percent = bar.max > 0 ? (bar.value / bar.max) * 100 : 0;
                   return (
-                    <div key={bIdx} className={`p-1.5 rounded-xl border ${bar.border} ${bar.bg} flex items-center justify-between gap-4 h-8`}>
+                    <div key={bIdx} className={`p-1.5 rounded-xl ${bar.bg} flex items-center justify-between gap-4 h-8`}>
                       <div className="w-1/4 text-[10px] font-black uppercase tracking-wider text-slate-500 truncate">
                         {bar.name}
                       </div>
@@ -281,7 +281,7 @@ export default function WardenNotices() {
                         <div className={`h-full ${bar.color} rounded-full transition-all duration-500`} style={{ width: `${percent}%` }} />
                       </div>
 
-                      <span className={`font-mono text-[10px] font-black px-1.5 py-0.5 rounded bg-white border ${bar.border} ${bar.text} min-w-[24px] text-center`}>
+                      <span className={`font-mono text-[10px] font-black px-1.5 py-0.5 rounded bg-white ${bar.text} min-w-[24px] text-center shadow-sm`}>
                         {bar.value}
                       </span>
                     </div>

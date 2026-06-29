@@ -1,18 +1,18 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   LayoutDashboard,
-  Megaphone,
   ChevronLeft,
-  UserCheck,
+  ShieldCheck,
   CreditCard
 } from "lucide-react";
 
-export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobile }) {
+export default function AdminSidebar({ isCollapsed, setIsCollapsed, closeMobile }) {
   const { user } = useAuth();
 
   const getInitials = () => {
-    if (!user?.name) return "ST";
+    if (!user?.name) return "AD";
     return user.name
       .split(" ")
       .map((n) => n[0])
@@ -24,17 +24,12 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
   const menuItems = [
     {
       label: "Dashboard Overview",
-      path: "/student",
+      path: "/admin",
       icon: <LayoutDashboard size={18} />,
     },
     {
-      label: "Notices & Complaints",
-      path: "/student/support-hub",
-      icon: <Megaphone size={18} />,
-    },
-    {
-      label: "Fee Management",
-      path: "/student/fees",
+      label: "Billing",
+      path: "/admin/billing",
       icon: <CreditCard size={18} />,
     },
   ];
@@ -61,7 +56,7 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
                 }`}
                 title={isCollapsed ? "Expand Sidebar" : ""}
               >
-                H
+                A
               </div>
               {!isCollapsed && (
                 <div className="animate-fade-in">
@@ -69,7 +64,7 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
                     HMS Portal
                   </span>
                   <span className="text-[11px] font-medium text-teal-400/60 block -mt-0.5">
-                    Student Workspace
+                    Admin Management Console
                   </span>
                 </div>
               )}
@@ -87,13 +82,13 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
           </div>
         </div>
 
-        {/* Dynamic Navigation Menu links */}
+        {/* Navigation Menu links */}
         <nav className="flex flex-col space-y-1.5 px-1">
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === "/student"}
+              end={item.path === "/admin"}
               onClick={closeMobile}
               className={({ isActive }) =>
                 `flex items-center py-3 text-xs font-bold tracking-wide rounded-xl transition-all duration-200 gap-3 ${
@@ -113,21 +108,21 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
         </nav>
       </div>
 
-      {/* Modern Profile Target Footer */}
+      {/* Profile Footer */}
       <div className="px-1 pt-4 border-t border-teal-950/40">
         <NavLink
-          to="/student/profile"
+          to="/admin/profile"
           onClick={closeMobile}
           className={({ isActive }) =>
             `w-full flex items-center gap-3 p-2 rounded-xl text-left transition-all duration-200 group border ${
               isCollapsed ? "justify-center px-0 border-transparent" : "px-3"
             } ${
               isActive
-                ? "bg-white/10 border-teal-500/30 text-white"
+                ? "bg-white/10 border-teal-500/40 text-white shadow-md font-bold scale-[1.01]"
                 : "border-transparent text-teal-100/60 hover:bg-white/5 hover:text-white"
             }`
           }
-          title={isCollapsed ? "Student Account Hub" : ""}
+          title={isCollapsed ? "Admin Account Hub" : ""}
         >
           <div className="w-8 h-8 rounded-xl bg-teal-400/20 text-teal-300 font-black text-xs flex items-center justify-center tracking-tight shrink-0 border border-teal-400/30 uppercase transition-all group-hover:bg-[#00a896] group-hover:text-white group-hover:border-transparent">
             {getInitials()}
@@ -137,13 +132,13 @@ export default function StudentSidebar({ isCollapsed, setIsCollapsed, closeMobil
             <div className="flex-grow min-w-0 flex items-center justify-between gap-1">
               <div className="min-w-0">
                 <h4 className="text-xs font-extrabold tracking-tight truncate leading-tight text-teal-50">
-                  {user?.name || "Student Profile"}
+                  {user?.name || "System Admin"}
                 </h4>
                 <p className="text-[9px] font-bold text-teal-400/50 uppercase tracking-wider leading-none mt-0.5 group-hover:text-teal-400">
-                  Resident Account
+                  Master Admin
                 </p>
               </div>
-              <UserCheck size={14} className="text-teal-400/40 group-hover:text-teal-400 shrink-0 ml-auto" />
+              <ShieldCheck size={14} className="text-teal-400/40 group-hover:text-teal-400 shrink-0 ml-auto" />
             </div>
           )}
         </NavLink>

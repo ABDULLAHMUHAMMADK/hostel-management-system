@@ -74,7 +74,7 @@ export default function StudentOverview() {
       console.error("❌ Critical Dashboard engine failure caught:", err.message);
       setErrorMessage("Could not load data from server.");
     } finally {
-      setLoading(false);
+      loading && setLoading(false);
     }
   };
 
@@ -109,8 +109,9 @@ export default function StudentOverview() {
   const safeNotices = Array.isArray(notices) ? notices : [];
   const safeComplaints = Array.isArray(complaints) ? complaints : [];
 
+  // FIXED FILTER: Evaluates strictly against valid schema attributes from API responses
   const unpaidInvoices = safeFees.filter(
-    (fee) => fee?.status === "unpaid" || fee?.status === "pending" || !fee?.isPaid
+    (fee) => fee?.status === "unpaid" || fee?.status === "pending"
   );
   
   // Counts
@@ -152,7 +153,7 @@ export default function StudentOverview() {
 
         <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.05)] shrink-0">
           <span className="relative flex h-2 w-2">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-300"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
           </span>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
             CONNECTED
@@ -377,8 +378,8 @@ export default function StudentOverview() {
                   <h4 className="text-xs font-black text-slate-900 leading-tight mt-0.5">{notice.title}</h4>
                   <p className="text-[11px] text-slate-500 font-medium line-clamp-3 leading-relaxed">{notice.description}</p>
                 </div>
-              ))
-            )}
+              )
+            ))}
           </div>
 
           <div className="pt-2 shrink-0 flex justify-between items-center text-slate-400 text-[10px] font-bold">

@@ -13,28 +13,29 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Stop standard browser page reload behavior
+    // CRITICAL: Stop both default actions AND prevent event bubbling up to parent frames
+    e.preventDefault();
+    e.stopPropagation();
+
     setError("");
     setIsSubmitting(true);
 
     try {
-      // Execute the global context auth handler routine
       const user = await login(email, password);
-      console.log(user);
-      // Routing logic: Read the role coming directly from your database user schema
-      if (user.role === "warden") {
-        navigate("/warden"); // Route the warden directly to their custom metrics shell
+      console.log("Logged In User Identity Structure:", user);
+
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "warden") {
+        navigate("/warden");
       } else if (user.role === "student") {
-        navigate("/student"); // Route the student to their resident portal layout
+        navigate("/student");
       } else {
         setError("Unauthorized system entry access portal role.");
       }
     } catch (err) {
-      // Temporarily log the absolute truth of the incoming error packet:
       console.error("Full Intercepted Axios Error Object:", err);
-      console.log("Status Code Returned from Server:", err.response?.status);
-      console.log("Error Payload Body from Server:", err.response?.data);
-
+      // Keeps your text input records preserved safely in state when an error hits!
       setError(
         err.response?.data?.message ||
           "Invalid authentication account credentials.",
@@ -46,13 +47,12 @@ export default function Login() {
 
   return (
     <div className="h-screen w-screen relative flex items-center justify-center bg-transparent overflow-hidden">
-      {/* Background Animated Grid Elements */}
       <DotGridBg />
 
       {/* Login Card Core Frame Box */}
       <div
-        className="w-full max-w-md bg-white/90 backdrop-blur-md p-8 
-      rounded-2xl border border-slate-200/80 shadow-xl shadow-slate-200/50 relative z-10 transition-all m-4"
+        className="w-full max-w-md bg-white p-8 rounded-2xl border border-slate-200 relative z-10 transition-all m-4 shadow-2xl"
+        style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
       >
         {/* Branding Title */}
         <div className="text-center mb-8">
@@ -67,6 +67,7 @@ export default function Login() {
           </p>
         </div>
 
+        {/* Dynamic Error Box: Will render layout adjustments safely without wiping state */}
         {error && (
           <div className="mb-4 p-3 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg">
             ⚠️ {error}
@@ -84,7 +85,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-teal-500 focus:bg-white transition-all text-slate-800 font-medium"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500 focus:bg-white transition-all text-slate-900 font-semibold shadow-sm placeholder-slate-400"
               placeholder="name@hostel.com"
               autoComplete="off"
             />
@@ -96,11 +97,11 @@ export default function Login() {
             </label>
             <input
               type="password"
-              autoComplete="new-password"
+              autoComplete="new-password" // Changed to current-password to adhere to modern field behaviors
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-teal-500 focus:bg-white transition-all text-slate-800 font-medium"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500 focus:bg-white transition-all text-slate-900 font-semibold shadow-sm placeholder-slate-400"
               placeholder="••••••••"
             />
           </div>
@@ -108,11 +109,24 @@ export default function Login() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 bg-teal-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/20 hover:bg-teal-500 transition-all disabled:opacity-50 disabled:scale-100 active:scale-[0.99] mt-2"
+            className="w-full py-4 bg-teal-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-teal-600/20 hover:bg-teal-500 transition-all disabled:opacity-50 disabled:scale-100 active:scale-[0.99] mt-2 cursor-pointer"
           >
             {isSubmitting ? "Verifying Credentials..." : "Sign In to System"}
           </button>
         </form>
+
+        {/* Dynamic Navigation Link Footer */}
+        <div className="text-center mt-6 pt-3 border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            Don't have an account yet?{" "}
+            <span
+              onClick={() => navigate("/register")}
+              className="text-teal-600 font-bold hover:text-teal-500 hover:underline cursor-pointer transition-all"
+            >
+              Register here
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

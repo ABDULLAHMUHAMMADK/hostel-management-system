@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../../api/client";
 import {
@@ -9,17 +9,26 @@ import {
 } from "recharts";
 import { io } from "socket.io-client";
 
-// ─── Ultra Clean Card Component with Safe Left Vertical Border Accent ───────
+// ─── Single Left-Side Center-Expanding Dynamic Border Engine (25% -> 100%) ───
+function AnimatedBorder({ accent }) {
+  return (
+    /* Left Edge Border Only */
+    <div 
+      className="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[25%] group-hover:h-full transition-all duration-300 ease-in-out z-20 rounded-r"
+      style={{ backgroundColor: accent }}
+    />
+  );
+}
+
+// ─── Ultra Clean Card Component with Left-Side Hover Accent ───────────────────
 function StatCard({ label, value, sub, accent }) {
   return (
     <div 
-      className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-      style={{ 
-        boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-        borderLeft: `5px solid ${accent}`
-      }}
+      className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none overflow-hidden relative group"
+      style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
     >
-      <div className="flex flex-col justify-center space-y-0.5">
+      <AnimatedBorder accent={accent} />
+      <div className="flex flex-col justify-center space-y-0.5 px-2 z-10">
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
           {label}
         </span>
@@ -48,7 +57,6 @@ export default function WardenOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Isolated data fetching engine calling clean, unpaginated server endpoints
   const fetchDashboardData = async (showLoadingState = false) => {
     try {
       if (showLoadingState) setLoading(true);
@@ -71,12 +79,10 @@ export default function WardenOverview() {
     }
   };
 
-  // Initial dashboard load
   useEffect(() => {
     fetchDashboardData(true);
   }, []);
 
-  // Real-time socket stream handler matching unallocated room triggers
   useEffect(() => {
     const socket = io("http://localhost:5000", {
       withCredentials: true
@@ -84,7 +90,7 @@ export default function WardenOverview() {
 
     const handleLiveStreamPing = () => {
       console.log("⚡ Live update ping synchronized across system dashboards!");
-      fetchDashboardData(false); // Silent background pull ensures pristine values
+      fetchDashboardData(false);
     };
 
     socket.on("analytics_updated", handleLiveStreamPing);
@@ -95,15 +101,22 @@ export default function WardenOverview() {
     };
   }, []);
 
-  // Defensively calculate values to prevent data field mismatches or zero breaks
+  // ─── Using the new analytics structure ─────────────────────────────────────
+  
+  const totalStudents = analytics?.totalStudents ?? 0;
+  const assignedStudents = analytics?.assignedStudents ?? 0;
+  const unassignedStudents = analytics?.unassignedStudents ?? 0;
+  
   const totalBedsCalculated = analytics?.totalBeds ?? 0;
   const occupiedBedsCalculated = analytics?.occupiedBeds ?? 0;
+  const availableBedsCalculated = analytics?.availableBeds ?? 0;
   
-  // Available beds fallback math ensures sync accuracy if a student is unassigned
-  const availableBedsCalculated = totalBedsCalculated >= occupiedBedsCalculated 
-    ? totalBedsCalculated - occupiedBedsCalculated 
-    : analytics?.availableBeds ?? 0;
+  const totalRooms = analytics?.totalRooms ?? 0;
+  const usedRooms = analytics?.usedRooms ?? 0;
+  const fullyOccupiedRooms = analytics?.fullyOccupiedRooms ?? 0;
+  const availableRooms = analytics?.availableRooms ?? 0;
 
+  // ─── Pie chart data ──────────────────────────────────────────────────────────
   const occupancyPie = [
     { name: "Occupied Beds", value: occupiedBedsCalculated },
     { name: "Available Beds", value: availableBedsCalculated },
@@ -116,7 +129,6 @@ export default function WardenOverview() {
   const PIE_COLORS = ["#00a896", "#1e293b"];
   const pendingComplaints = complaints.filter((c) => c.status !== "resolved");
 
-  // Dynamic Occupancy rate string generation
   const calculatedOccupancyRate = totalBedsCalculated > 0 
     ? `${Math.round((occupiedBedsCalculated / totalBedsCalculated) * 100)}%`
     : "0%";
@@ -173,28 +185,35 @@ export default function WardenOverview() {
 
       {/* ─── Row 1: Strict 4-Card Premium Layout Line ───────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        {/* ✅ Card 1: Total Residents with unassigned and total students */}
         <StatCard
           label="Total Residents"
-          value={occupiedBedsCalculated}
-          sub={`Unassigned: ${analytics?.unassignedStudents ?? 0} students`}
+          value={assignedStudents}
+          sub={`${unassignedStudents} unassigned · ${totalStudents} total students`}
           accent="#8b5cf6"
         />
+        
+        {/* ✅ Card 2: Available Beds */}
         <StatCard
           label="Available Beds"
           value={availableBedsCalculated}
-          sub={`Out of ${totalBedsCalculated} spaces total`}
+          sub={`${occupiedBedsCalculated} occupied of ${totalBedsCalculated} total`}
           accent="#3b82f6"
         />
+        
+        {/* ✅ Card 3: Pending Invoices */}
         <StatCard
           label="Pending Invoices"
           value={`${feePending?.count ?? 0} / ${totalInvoicedCount}`}
           sub="Outstanding balance sheets"
           accent="#f43f5e"
         />
+        
+        {/* ✅ Card 4: Total Rooms (UPDATED) */}
         <StatCard
-          label="Total Bed Capacity"
-          value={totalBedsCalculated}
-          sub="Total structural slots available"
+          label="Total Rooms"
+          value={totalRooms}
+          sub={`${usedRooms} used · ${availableRooms} empty · ${fullyOccupiedRooms} full`}
           accent="#eab308"
         />
       </div>
@@ -204,13 +223,14 @@ export default function WardenOverview() {
         
         {/* LEFT PANEL: Occupancy Ratio Donut Ring Chart */}
         <div 
-          className="bg-white rounded-2xl p-4 flex flex-col items-center justify-between h-full min-h-0"
+          className="bg-white rounded-2xl p-4 flex flex-col items-center justify-between h-full min-h-0 relative overflow-hidden group"
           style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
         >
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest self-start w-full">
+          <AnimatedBorder accent="#00a896" />
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest self-start w-full px-2 z-10">
             Bed Occupancy Ratio
           </h3>
-          <div className="relative w-full flex items-center justify-center min-h-0 py-2" style={{ flexGrow: 1 }}>
+          <div className="relative w-full flex items-center justify-center min-h-0 py-2 z-10" style={{ flexGrow: 1 }}>
             {totalBedsCalculated > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -237,50 +257,53 @@ export default function WardenOverview() {
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Filled</span>
             </div>
           </div>
+          
+          {/* Quick stats below chart */}
+          <div className="w-full flex justify-between text-[9px] font-bold text-slate-500 px-2 pt-1 shrink-0 z-10 border-t border-slate-100/50 mt-1">
+            <span>👥 {assignedStudents} Residents</span>
+            <span>🛏️ {availableBedsCalculated} Beds Free</span>
+            <span>📋 {totalStudents} Total</span>
+          </div>
         </div>
 
         {/* MIDDLE PANEL: Dynamic Room Sub-Metrics & Complaints Feed ──── */}
         <div className="flex flex-col gap-4 h-full min-h-0">
           
           <div className="grid grid-cols-2 gap-4 shrink-0">
-            {/* Used Rooms Card (Any room containing >= 1 student) */}
+            {/* Used Rooms Card */}
             <div 
-              className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-              style={{ 
-                boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-                borderLeft: "5px solid #6366f1"
-              }}
+              className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none overflow-hidden relative group"
+              style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
             >
-              <div className="flex flex-col justify-center space-y-0.5">
+              <AnimatedBorder accent="#6366f1" />
+              <div className="flex flex-col justify-center space-y-0.5 px-2 z-10">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
                   Used Rooms
                 </span>
                 <span className="text-2xl font-black text-slate-800 tracking-tight block leading-tight">
-                  {analytics?.usedRooms ?? 0}
+                  {usedRooms}
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 block truncate leading-tight pt-0.5">
-                  Out of {analytics?.totalRooms || 0} rooms
+                  Out of {totalRooms} rooms
                 </span>
               </div>
             </div>
 
-            {/* Fully Occupied Rooms Card (Rooms hit 100% capacity threshold) */}
+            {/* Fully Occupied Rooms Card */}
             <div 
-              className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-              style={{ 
-                boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-                borderLeft: "5px solid #00a896"
-              }}
+              className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none overflow-hidden relative group"
+              style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
             >
-              <div className="flex flex-col justify-center space-y-0.5">
+              <AnimatedBorder accent="#00a896" />
+              <div className="flex flex-col justify-center space-y-0.5 px-2 z-10">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
                   Fully Occupied
                 </span>
                 <span className="text-2xl font-black text-slate-800 tracking-tight block leading-tight">
-                  {analytics?.fullyOccupiedRooms ?? 0}
+                  {fullyOccupiedRooms}
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 block truncate leading-tight pt-0.5">
-                  {analytics?.availableRooms ?? 0} entirely empty
+                  {availableRooms} entirely empty
                 </span>
               </div>
             </div>
@@ -288,10 +311,11 @@ export default function WardenOverview() {
 
           {/* Bottom Half: Complaints Ticket Feed */}
           <div 
-            className="bg-white rounded-2xl p-4 flex flex-col min-h-0"  
-            style={{flexGrow: 1 , boxShadow:  "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
+            className="bg-white rounded-2xl p-4 flex flex-col min-h-0 relative overflow-hidden group"  
+            style={{flexGrow: 1, boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
           >
-            <div className="flex items-center justify-between mb-2 shrink-0">
+            <AnimatedBorder accent="#3b82f6" />
+            <div className="flex items-center justify-between mb-2 shrink-0 px-2 z-10">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 Complaints
               </h3>
@@ -303,7 +327,7 @@ export default function WardenOverview() {
               </button>
             </div>
 
-            <div className="overflow-y-auto min-h-0 space-y-2 pr-1" style={{ flexGrow: 1 }}>
+            <div className="overflow-y-auto min-h-0 space-y-2 pr-1 px-2 z-10" style={{ flexGrow: 1 }}>
               {complaints.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <p className="text-[11px] text-slate-400 font-bold text-center">Clear tickets 🎉</p>
@@ -328,10 +352,11 @@ export default function WardenOverview() {
 
         {/* RIGHT PANEL: Action Center Panel */}
         <div 
-          className="bg-white rounded-2xl p-4 flex flex-col h-full min-h-0"
+          className="bg-white rounded-2xl p-4 flex flex-col h-full min-h-0 relative overflow-hidden group"
           style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
         >
-          <div className="mb-3 shrink-0">
+          <AnimatedBorder accent="#475569" />
+          <div className="mb-3 shrink-0 px-2 z-10">
             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Actions Needed
             </h3>
@@ -340,7 +365,7 @@ export default function WardenOverview() {
             </p>
           </div>
 
-          <div className="overflow-y-auto min-h-0 space-y-2.5 pr-1" style={{ flexGrow: 1 }}>
+          <div className="overflow-y-auto min-h-0 space-y-2.5 pr-1 px-2 z-10" style={{ flexGrow: 1 }}>
             {pendingComplaints.length > 0 && (
               <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -368,6 +393,24 @@ export default function WardenOverview() {
                 </div>
                 <button className="shrink-0 px-2.5 py-1 bg-amber-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-amber-600 transition-colors">
                   Notify
+                </button>
+              </div>
+            )}
+
+            {/* Unassigned Students Action */}
+            {unassignedStudents > 0 && (
+              <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100/70 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-indigo-900 truncate">Unassigned Students</h4>
+                  <p className="text-[10px] font-semibold text-indigo-500 mt-0.5 line-clamp-2 leading-tight">
+                    {unassignedStudents} students need room allocation.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => navigate("/warden/students")}
+                  className="shrink-0 px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-indigo-700 transition-colors"
+                >
+                  Assign
                 </button>
               </div>
             )}

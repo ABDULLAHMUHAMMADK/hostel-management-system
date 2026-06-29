@@ -23,7 +23,7 @@ routes.post(
 
 routes.get("/my-fees", verifyUser, authorize(["student"]), getStudentFees);
 
-routes.get(
+routes.post(
   "/pay-fee",
   verifyUser,
   authorize(["student"]),
