@@ -18,21 +18,33 @@ export default function Register() {
   const [roomId, setRoomId] = useState("");
   const [hostelList, setHostelList] = useState([]);
   const [roomList, setRoomList] = useState([]);
-  const [hostelSearch, setHostelSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
+  const [isHostelOpen, setIsHostelOpen] = useState(false);
+  const [isRoomOpen, setIsRoomOpen] = useState(false);
   const [selectedHostelName, setSelectedHostelName] = useState("");
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState("");
 
   // Warden specific parameters
   const [hostelName, setHostelName] = useState("");
   const [hostelLocation, setHostelLocation] = useState("");
   const [totalRooms, setTotalRooms] = useState("");
 
-  const dropdownRef = useRef(null);
+  const hostelDropdownRef = useRef(null);
+  const roomDropdownRef = useRef(null);
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+      if (
+        hostelDropdownRef.current &&
+        !hostelDropdownRef.current.contains(event.target)
+      ) {
+        setIsHostelOpen(false);
+      }
+      if (
+        roomDropdownRef.current &&
+        !roomDropdownRef.current.contains(event.target)
+      ) {
+        setIsRoomOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -75,11 +87,8 @@ export default function Register() {
     };
     fetchRooms();
     setRoomId("");
+    setSelectedRoomNumber("");
   }, [hostelId]);
-
-  const filteredHostels = hostelList.filter((hostel) =>
-    hostel.name.toLowerCase().includes(hostelSearch.toLowerCase()),
-  );
 
   const handleRegisterSubmit = async (event) => {
     event.preventDefault();
@@ -126,7 +135,7 @@ export default function Register() {
           </p>
         </div>
 
-        <form onSubmit={handleRegisterSubmit} className="space-y-4">
+        <form onSubmit={handleRegisterSubmit} className="space-y-4 ">
           {/* Universal Core Fields Grid Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -218,14 +227,14 @@ export default function Register() {
                 exit={{ opacity: 0, height: 0 }}
                 className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1"
               >
-                {/* HOSTEL DROPDOWN */}
-                <div className="relative" ref={dropdownRef}>
+                {/* HOSTEL DROPDOWN - Updated to match Room dropdown style (simple clickable) */}
+                <div className="relative" ref={hostelDropdownRef}>
                   <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-1.5">
                     Hostel
                   </label>
                   <div
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 font-bold focus:outline-none focus:border-teal-500 cursor-pointer flex justify-between items-center transition-all shadow-sm"
+                    onClick={() => setIsHostelOpen(!isHostelOpen)}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 font-bold focus:outline-none focus:border-teal-500 cursor-pointer flex justify-between items-center transition-all shadow-sm hover:border-teal-400"
                   >
                     <span
                       className={
@@ -237,7 +246,7 @@ export default function Register() {
                       {selectedHostelName || "-- Select Hostel --"}
                     </span>
                     <svg
-                      className={`w-4 h-4 text-slate-600 flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 text-slate-600 flex-shrink-0 transition-transform ${isHostelOpen ? "rotate-180" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -250,30 +259,21 @@ export default function Register() {
                       />
                     </svg>
                   </div>
-                  {isOpen && (
+                  {isHostelOpen && (
                     <div className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
-                      <div className="border-b border-slate-100 pb-2 mb-1">
-                        <input
-                          type="text"
-                          placeholder="Type to filter..."
-                          value={hostelSearch}
-                          onChange={(e) => setHostelSearch(e.target.value)}
-                          className="w-full rounded-lg bg-slate-50 border border-slate-300 px-3 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500 text-slate-900 font-medium"
-                        />
-                      </div>
                       <ul className="max-h-28 overflow-y-auto space-y-0.5">
-                        {filteredHostels.length === 0 ? (
+                        {hostelList.length === 0 ? (
                           <li className="text-xs text-slate-400 text-center py-2">
-                            No matching hostels
+                            No hostels available
                           </li>
                         ) : (
-                          filteredHostels.map((h) => (
+                          hostelList.map((h) => (
                             <li
                               key={h._id}
                               onClick={() => {
                                 setHostelId(h._id);
                                 setSelectedHostelName(h.name);
-                                setIsOpen(false);
+                                setIsHostelOpen(false);
                               }}
                               className="cursor-pointer rounded-lg px-3 py-1.5 text-xs text-slate-800 hover:bg-teal-50 hover:text-teal-700 font-bold transition-colors"
                             >
@@ -285,35 +285,76 @@ export default function Register() {
                     </div>
                   )}
                 </div>
-                {/* AVAILABLE ROOMS SELECTOR */}
-                <div>
+
+                {/* ROOM DROPDOWN - Keep as is with search/filter */}
+                <div className="relative" ref={roomDropdownRef}>
                   <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-1.5">
                     Available Rooms
                   </label>
-                  <select
-                    value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
-                    disabled={!hostelId || roomList.length === 0}
-                    className="w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-teal-500 disabled:opacity-60 text-slate-900 font-bold transition-all cursor-pointer shadow-sm"
-                    required
+                  <div
+                    onClick={() => {
+                      if (hostelId && roomList.length > 0) {
+                        setIsRoomOpen(!isRoomOpen);
+                      }
+                    }}
+                    className={`w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 font-bold focus:outline-none focus:border-teal-500 cursor-pointer flex justify-between items-center transition-all shadow-sm ${
+                      !hostelId || roomList.length === 0
+                        ? "opacity-60 cursor-not-allowed"
+                        : "hover:border-teal-400"
+                    }`}
                   >
-                    {!hostelId && <option value="">Choose hostel first</option>}
-                    {hostelId && roomList.length === 0 && (
-                      <option value="">⚠️ No rooms yet</option>
-                    )}
+                    <span
+                      className={
+                        selectedRoomNumber
+                          ? "text-slate-900 font-bold truncate"
+                          : "text-slate-400 truncate font-semibold"
+                      }
+                    >
+                      {!hostelId
+                        ? "Choose hostel first"
+                        : roomList.length === 0
+                          ? "⚠️ No rooms available"
+                          : selectedRoomNumber || "-- Select Room --"}
+                    </span>
                     {hostelId && roomList.length > 0 && (
-                      <>
-                        <option value="">-- Select Room --</option>
+                      <svg
+                        className={`w-4 h-4 text-slate-600 flex-shrink-0 transition-transform ${isRoomOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  {isRoomOpen && hostelId && roomList.length > 0 && (
+                    <div className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                      <ul className="max-h-28 overflow-y-auto space-y-0.5">
                         {roomList.map((room) => (
-                          <option key={room._id} value={room._id}>
+                          <li
+                            key={room._id}
+                            onClick={() => {
+                              setRoomId(room._id);
+                              setSelectedRoomNumber(
+                                `Room ${room.roomNumber} (${room.maxCapicity - room.occupants.length} open beds)`,
+                              );
+                              setIsRoomOpen(false);
+                            }}
+                            className="cursor-pointer rounded-lg px-3 py-1.5 text-xs text-slate-800 hover:bg-teal-50 hover:text-teal-700 font-bold transition-colors"
+                          >
                             Room {room.roomNumber} (
                             {room.maxCapicity - room.occupants.length} open
                             beds)
-                          </option>
+                          </li>
                         ))}
-                      </>
-                    )}
-                  </select>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -394,3 +435,7 @@ export default function Register() {
     </div>
   );
 }
+
+
+
+

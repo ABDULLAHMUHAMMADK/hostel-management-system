@@ -861,8 +861,8 @@ export const createWardenCheckoutSession = async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      success_url: "http://localhost:5173/warden/fees?status=success",
-      cancel_url: "http://localhost:5173/warden/fees?status=cancelled",
+      success_url: "http://localhost:5173/warden/payment-success",
+      cancel_url: "http://localhost:5173/warden/payment-cancel",
       customer_email: warden.email,
       line_items: [
         {

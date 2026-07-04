@@ -185,7 +185,6 @@ export default function WardenOverview() {
 
       {/* ─── Row 1: Strict 4-Card Premium Layout Line ───────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        {/* ✅ Card 1: Total Residents with unassigned and total students */}
         <StatCard
           label="Total Residents"
           value={assignedStudents}
@@ -193,7 +192,6 @@ export default function WardenOverview() {
           accent="#8b5cf6"
         />
         
-        {/* ✅ Card 2: Available Beds */}
         <StatCard
           label="Available Beds"
           value={availableBedsCalculated}
@@ -201,7 +199,6 @@ export default function WardenOverview() {
           accent="#3b82f6"
         />
         
-        {/* ✅ Card 3: Pending Invoices */}
         <StatCard
           label="Pending Invoices"
           value={`${feePending?.count ?? 0} / ${totalInvoicedCount}`}
@@ -209,7 +206,6 @@ export default function WardenOverview() {
           accent="#f43f5e"
         />
         
-        {/* ✅ Card 4: Total Rooms (UPDATED) */}
         <StatCard
           label="Total Rooms"
           value={totalRooms}
@@ -258,7 +254,6 @@ export default function WardenOverview() {
             </div>
           </div>
           
-          {/* Quick stats below chart */}
           <div className="w-full flex justify-between text-[9px] font-bold text-slate-500 px-2 pt-1 shrink-0 z-10 border-t border-slate-100/50 mt-1">
             <span>👥 {assignedStudents} Residents</span>
             <span>🛏️ {availableBedsCalculated} Beds Free</span>
@@ -270,7 +265,6 @@ export default function WardenOverview() {
         <div className="flex flex-col gap-4 h-full min-h-0">
           
           <div className="grid grid-cols-2 gap-4 shrink-0">
-            {/* Used Rooms Card */}
             <div 
               className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none overflow-hidden relative group"
               style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
@@ -289,7 +283,6 @@ export default function WardenOverview() {
               </div>
             </div>
 
-            {/* Fully Occupied Rooms Card */}
             <div 
               className="bg-white rounded-2xl p-4 flex flex-col justify-center h-24 select-none overflow-hidden relative group"
               style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
@@ -320,7 +313,7 @@ export default function WardenOverview() {
                 Complaints
               </h3>
               <button
-                onClick={() => navigate("/warden/complaints")}
+                onClick={() => navigate("/warden/complaint")}
                 className="text-[9px] font-black uppercase text-[#00a896] hover:underline"
               >
                 Feed →
@@ -366,6 +359,7 @@ export default function WardenOverview() {
           </div>
 
           <div className="overflow-y-auto min-h-0 space-y-2.5 pr-1 px-2 z-10" style={{ flexGrow: 1 }}>
+            {/* ✅ Unresolved Tickets - Navigate to /warden/complaint (singular) */}
             {pendingComplaints.length > 0 && (
               <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -375,7 +369,7 @@ export default function WardenOverview() {
                   </p>
                 </div>
                 <button 
-                  onClick={() => navigate("/warden/complaints")}
+                  onClick={() => navigate("/warden/complaint")}
                   className="shrink-0 px-2.5 py-1 bg-rose-600 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-rose-700 transition-colors"
                 >
                   Resolve
@@ -383,6 +377,7 @@ export default function WardenOverview() {
               </div>
             )}
 
+            {/* ✅ Pending Fee Overdues - Navigate to /warden/fees */}
             {feePending?.count > 0 && (
               <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -391,7 +386,10 @@ export default function WardenOverview() {
                     {feePending.count} students have outstanding invoice balances.
                   </p>
                 </div>
-                <button className="shrink-0 px-2.5 py-1 bg-amber-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-amber-600 transition-colors">
+                <button 
+                  onClick={() => navigate("/warden/fees")}
+                  className="shrink-0 px-2.5 py-1 bg-amber-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider shadow-sm hover:bg-amber-600 transition-colors"
+                >
                   Notify
                 </button>
               </div>
@@ -415,6 +413,7 @@ export default function WardenOverview() {
               </div>
             )}
 
+            {/* Room Allocation Logs */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h4 className="text-xs font-bold text-slate-700 truncate">Room Allocation Logs</h4>

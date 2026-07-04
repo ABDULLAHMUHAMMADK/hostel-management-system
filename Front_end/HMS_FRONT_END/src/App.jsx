@@ -24,6 +24,9 @@ import AdminOverview from "./pages/admin/AdminOverview";
 import AdminFeeHub from "./pages/admin/AdminFeeHub";
 import WardenFees from "./pages/warden/WardenFees";
 import AdminProfile from "./pages/admin/AdminProfile";
+import WardenPaymentSuccess from "./pages/warden/WardenPaymentSuccess";
+import WardenPaymentCancel from "./pages/warden/WardenPaymentCancel";
+import AdminNotice from "./pages/admin/AdminNotice";
 
 export default function App() {
   return (
@@ -42,38 +45,29 @@ export default function App() {
             <Route path="complaint" element={<WardenComplaints />} />
             <Route path="profile" element={<WardenProfile />} />
             <Route path="notice" element={<WardenNotices />} />
-            <Route path="fees" element={<WardenFees/>} />
+            <Route path="fees" element={<WardenFees />} />
+            <Route path="/warden/payment-success" element={<WardenPaymentSuccess/>} />
+            <Route path="/warden/payment-cancel" element={<WardenPaymentCancel/>} />
           </Route>
-
           <Route path="/student" element={<StudentLayout />}>
             <Route index element={<StudentOverview />} />
-            <Route path="profile"  element={<StudentProfile/>} />
+            <Route path="profile" element={<StudentProfile />} />
             <Route
               path="/student/support-hub"
               element={<NoticesComplaintsHub />}
             />
-            <Route
-              path="/student/fees"
-              element={<StudentFeeHub/>}
-            />
-          
+            <Route path="/student/fees" element={<StudentFeeHub />} />
           </Route>
-
-          <Route path="/admin" element={<AdminLayout/>}>
-
-          <Route index element={<AdminOverview/>} />
-          <Route path="billing" element={<AdminFeeHub/>} />
-          <Route path="profile" element={<AdminProfile/>} />
-            
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminOverview />} />
+            <Route path="billing" element={<AdminFeeHub />} />
+            <Route path="profile" element={<AdminProfile />} />
+            {/* <Route path="notices" element={<AdminNotice/>} /> */}
           </Route>
-
-
-
           {/* Catch-All Automatic Fallback Redirection */}
           <Route path="*" element={<Navigate to="/login" replace />} />
-          <Route path="/dashboard/fees/success" element={<PaymentSuccess/>} />
-          <Route path="/dashboard/fees/cancel" element={<PaymentCancel/>} />
-
+          <Route path="/dashboard/fees/success" element={<PaymentSuccess />} />
+          <Route path="/dashboard/fees/cancel" element={<PaymentCancel />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
