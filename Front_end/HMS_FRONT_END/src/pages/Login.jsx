@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import API from "../api/client"; // ✅ ADD THIS IMPORT
 import DotGridBg from "../components/DotGridBg";
 
 export default function Login() {
@@ -22,43 +21,24 @@ export default function Login() {
 
     try {
       console.log("🔐 Login attempt for:", email);
-      
-      // ✅ Now API is defined and works
-      const response = await API.post("/users/login", { email, password });
-      
-      if (response.data?.success) {
-        const { token, user: userData } = response.data;
-        
-        console.log("✅ Login successful");
-        console.log("📝 Token received:", token ? "Yes" : "No");
-        console.log("📝 User role:", userData?.role);
-        
-        // Store in localStorage
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(userData));
-        
-        // Verify storage
-        const storedToken = localStorage.getItem("token");
-        const storedUser = localStorage.getItem("user");
-        console.log("✅ Storage verification - Token:", storedToken ? "Present" : "Missing");
-        console.log("✅ Storage verification - User:", storedUser ? "Present" : "Missing");
-        
-        // Redirect based on role
-        const role = userData.role;
-        console.log("🔄 Redirecting to:", `/${role}`);
-        
-        if (role === "admin") {
-          window.location.href = "/admin";
-        } else if (role === "warden") {
-          window.location.href = "/warden";
-        } else if (role === "student") {
-          window.location.href = "/student";
-        } else {
-          setError("Unauthorized role.");
-          setIsSubmitting(false);
-        }
+
+      // ✅ Using AuthContext login method (NO direct API call)
+      const user = await login(email, password);
+
+      console.log("✅ Login successful - User role:", user?.role);
+
+      // ✅ Use window.location for reliable redirect
+      const role = user.role;
+      console.log("🔄 Redirecting to:", `/${role}`);
+
+      if (role === "admin") {
+        window.location.href = "/admin";
+      } else if (role === "warden") {
+        window.location.href = "/warden";
+      } else if (role === "student") {
+        window.location.href = "/student";
       } else {
-        setError("Login failed. Please try again.");
+        setError("Unauthorized role.");
         setIsSubmitting(false);
       }
     } catch (err) {
