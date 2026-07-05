@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import API from "../api/client"; // ✅ ADD THIS IMPORT
 import DotGridBg from "../components/DotGridBg";
 
 export default function Login() {
@@ -22,7 +23,7 @@ export default function Login() {
     try {
       console.log("🔐 Login attempt for:", email);
       
-      // ✅ Direct API call to ensure data is stored
+      // ✅ Now API is defined and works
       const response = await API.post("/users/login", { email, password });
       
       if (response.data?.success) {
@@ -30,19 +31,19 @@ export default function Login() {
         
         console.log("✅ Login successful");
         console.log("📝 Token received:", token ? "Yes" : "No");
-        console.log("📝 User data:", userData);
+        console.log("📝 User role:", userData?.role);
         
-        // ✅ Store in localStorage directly (double-check)
+        // Store in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(userData));
         
-        // ✅ Verify it was stored
+        // Verify storage
         const storedToken = localStorage.getItem("token");
         const storedUser = localStorage.getItem("user");
         console.log("✅ Storage verification - Token:", storedToken ? "Present" : "Missing");
         console.log("✅ Storage verification - User:", storedUser ? "Present" : "Missing");
         
-        // ✅ Redirect based on role
+        // Redirect based on role
         const role = userData.role;
         console.log("🔄 Redirecting to:", `/${role}`);
         
