@@ -21,24 +21,43 @@ export default function Login() {
 
     try {
       console.log("🔐 Login attempt for:", email);
-      const user = await login(email, password);
-      console.log("✅ Login successful - User:", user.role);
-
-      // ✅ Wait a moment to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // ✅ Use window.location for reliable redirect
-      const role = user.role;
-      console.log("🔄 Redirecting to:", `/${role}`);
       
-      if (role === "admin") {
-        window.location.href = "/admin";
-      } else if (role === "warden") {
-        window.location.href = "/warden";
-      } else if (role === "student") {
-        window.location.href = "/student";
+      // ✅ Direct API call to ensure data is stored
+      const response = await API.post("/users/login", { email, password });
+      
+      if (response.data?.success) {
+        const { token, user: userData } = response.data;
+        
+        console.log("✅ Login successful");
+        console.log("📝 Token received:", token ? "Yes" : "No");
+        console.log("📝 User data:", userData);
+        
+        // ✅ Store in localStorage directly (double-check)
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(userData));
+        
+        // ✅ Verify it was stored
+        const storedToken = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+        console.log("✅ Storage verification - Token:", storedToken ? "Present" : "Missing");
+        console.log("✅ Storage verification - User:", storedUser ? "Present" : "Missing");
+        
+        // ✅ Redirect based on role
+        const role = userData.role;
+        console.log("🔄 Redirecting to:", `/${role}`);
+        
+        if (role === "admin") {
+          window.location.href = "/admin";
+        } else if (role === "warden") {
+          window.location.href = "/warden";
+        } else if (role === "student") {
+          window.location.href = "/student";
+        } else {
+          setError("Unauthorized role.");
+          setIsSubmitting(false);
+        }
       } else {
-        setError("Unauthorized system entry access portal role.");
+        setError("Login failed. Please try again.");
         setIsSubmitting(false);
       }
     } catch (err) {

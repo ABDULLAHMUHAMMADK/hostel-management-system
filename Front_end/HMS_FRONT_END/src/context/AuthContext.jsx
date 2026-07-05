@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const logout = () => {
+    console.log("🔴 Logout called - clearing storage");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
@@ -18,7 +19,6 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    // Inject our state clearing logic right into Axios
     injectLogoutTrigger(logout);
 
     const storedToken = localStorage.getItem("token");
@@ -49,13 +49,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    console.log("🔐 Attempting login...");
+    console.log("🔐 Login attempt...");
     const response = await API.post("/users/login", { email, password });
     const { token, user: userData } = response.data;
 
-    console.log("✅ Login successful - Token:", token ? "Received" : "Missing");
-    console.log("✅ Login successful - User role:", userData?.role);
+    console.log("✅ Login successful");
+    console.log("📝 Token:", token ? "Received" : "Missing");
+    console.log("📝 User role:", userData?.role);
 
+    // ✅ Store in localStorage
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
 
