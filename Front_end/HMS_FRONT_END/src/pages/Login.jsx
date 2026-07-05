@@ -9,7 +9,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, loginAndRedirect } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,11 +20,17 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
+      console.log("🔐 Login attempt for:", email);
       const user = await login(email, password);
-      console.log("Logged In User Identity Structure:", user);
+      console.log("✅ Login successful - User:", user.role);
 
-      // ✅ Use window.location for production reliability
+      // ✅ Wait a moment to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // ✅ Use window.location for reliable redirect
       const role = user.role;
+      console.log("🔄 Redirecting to:", `/${role}`);
+      
       if (role === "admin") {
         window.location.href = "/admin";
       } else if (role === "warden") {
@@ -33,14 +39,14 @@ export default function Login() {
         window.location.href = "/student";
       } else {
         setError("Unauthorized system entry access portal role.");
+        setIsSubmitting(false);
       }
     } catch (err) {
-      console.error("Full Intercepted Axios Error Object:", err);
+      console.error("❌ Login error:", err);
       setError(
         err.response?.data?.message ||
           "Invalid authentication account credentials.",
       );
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -49,12 +55,10 @@ export default function Login() {
     <div className="h-screen w-screen relative flex items-center justify-center bg-transparent overflow-hidden">
       <DotGridBg />
 
-      {/* Login Card Core Frame Box */}
       <div
         className="w-full max-w-md bg-white p-8 rounded-2xl border border-slate-200 relative z-10 transition-all m-4 shadow-2xl"
         style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
       >
-        {/* Branding Title */}
         <div className="text-center mb-8">
           <div className="h-12 w-12 rounded-xl bg-teal-600 flex items-center justify-center text-white font-bold text-xl mx-auto mb-3 shadow-md shadow-teal-600/20">
             H
@@ -67,14 +71,12 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Dynamic Error Box */}
         {error && (
           <div className="mb-4 p-3 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg">
             ⚠️ {error}
           </div>
         )}
 
-        {/* Action Form Element */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-xs font-bold text-slate-700 tracking-wider uppercase mb-2">
@@ -115,7 +117,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Dynamic Navigation Link Footer */}
         <div className="text-center mt-6 pt-3 border-t border-slate-100">
           <p className="text-xs text-slate-500">
             Don't have an account yet?{" "}

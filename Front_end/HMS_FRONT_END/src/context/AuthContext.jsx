@@ -12,7 +12,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     setUser(null);
 
-    // Use window.location for reliable redirect
     if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
       window.location.href = "/login";
     }
@@ -25,9 +24,22 @@ export function AuthProvider({ children }) {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
+    console.log("🔍 Auth Check - Token:", storedToken ? "Present" : "Missing");
+    console.log("🔍 Auth Check - User:", storedUser ? "Present" : "Missing");
+
     if (storedToken && storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        console.log("✅ User loaded:", parsedUser.role);
+      } catch (error) {
+        console.error("❌ Failed to parse user data:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+      }
     } else {
+      console.log("❌ No stored auth data found");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setUser(null);
@@ -37,8 +49,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
+    console.log("🔐 Attempting login...");
     const response = await API.post("/users/login", { email, password });
     const { token, user: userData } = response.data;
+
+    console.log("✅ Login successful - Token:", token ? "Received" : "Missing");
+    console.log("✅ Login successful - User role:", userData?.role);
 
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -47,31 +63,8 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
-  // ✅ NEW: Login with redirect (for production reliability)
-  const loginAndRedirect = async (email, password) => {
-    try {
-      const userData = await login(email, password);
-      
-      // Use window.location for reliable redirect in production
-      const role = userData.role;
-      if (role === "admin") {
-        window.location.href = "/admin";
-      } else if (role === "warden") {
-        window.location.href = "/warden";
-      } else if (role === "student") {
-        window.location.href = "/student";
-      } else {
-        window.location.href = "/";
-      }
-      
-      return userData;
-    } catch (error) {
-      throw error;
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, loginAndRedirect, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );
