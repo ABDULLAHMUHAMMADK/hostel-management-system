@@ -16,7 +16,7 @@ routes.post(
   createNoticeAdmin
 );
 
-// ─── WARDEN: Get notices for their hostel ───────────────────────────────────
+// ─── WARDEN: Get notices for their hostel ──────────────────────────────────
 routes.get(
   "/warden/notices",
   verifyUser,
