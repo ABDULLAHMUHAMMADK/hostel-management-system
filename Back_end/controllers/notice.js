@@ -1,5 +1,5 @@
 import { Notice } from "../models/Notice.js";
-import { Hostel } from "../models/Hostel.js";
+import { Hostel } from "../models/hostel.js";
 
 export const createNotice = async (req, res) => {
   try {
