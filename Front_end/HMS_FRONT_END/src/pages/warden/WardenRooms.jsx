@@ -14,6 +14,14 @@ import {
 } from "lucide-react";
 import { io } from "socket.io-client";
 
+// ─── ENVIRONMENT-AWARE SOCKET URL ──────────────────────────────────────────
+const getSocketUrl = () => {
+  if (import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  return "http://localhost:5000";
+};
+
 // --- DEEPER CONTRAST HIGH-FIDELITY SKELETON COMPONENT ---
 function YouTubeStyleSkeleton() {
   const cardShadowStyle = { boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" };
@@ -217,7 +225,12 @@ export default function WardenRooms() {
     fetchRoomLayout();
     fetchInvoiceStats();
 
-    const socket = io("http://localhost:5000");
+    // ─── ENVIRONMENT-AWARE SOCKET ──────────────────────────────────────────
+    const socketUrl = getSocketUrl();
+    const socket = io(socketUrl, {
+      withCredentials: true
+    });
+    
     socket.on("room_layout_changed", () => {
       fetchRoomLayout();
       fetchInvoiceStats();

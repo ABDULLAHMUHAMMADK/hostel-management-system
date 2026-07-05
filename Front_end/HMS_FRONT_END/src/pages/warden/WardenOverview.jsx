@@ -12,7 +12,6 @@ import { io } from "socket.io-client";
 // ─── Single Left-Side Center-Expanding Dynamic Border Engine (25% -> 100%) ───
 function AnimatedBorder({ accent }) {
   return (
-    /* Left Edge Border Only */
     <div 
       className="absolute left-0 top-1/2 -translate-y-1/2 w-[4px] h-[25%] group-hover:h-full transition-all duration-300 ease-in-out z-20 rounded-r"
       style={{ backgroundColor: accent }}
@@ -57,6 +56,16 @@ export default function WardenOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // ─── ENVIRONMENT-AWARE SOCKET URL ──────────────────────────────────────────
+  const getSocketUrl = () => {
+    // If VITE_API_URL is set, use it for socket connection
+    if (import.meta.env?.VITE_API_URL) {
+      return import.meta.env.VITE_API_URL;
+    }
+    // Fallback to localhost
+    return "http://localhost:5000";
+  };
+
   const fetchDashboardData = async (showLoadingState = false) => {
     try {
       if (showLoadingState) setLoading(true);
@@ -84,7 +93,8 @@ export default function WardenOverview() {
   }, []);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000", {
+    const socketUrl = getSocketUrl();
+    const socket = io(socketUrl, {
       withCredentials: true
     });
 
@@ -359,7 +369,6 @@ export default function WardenOverview() {
           </div>
 
           <div className="overflow-y-auto min-h-0 space-y-2.5 pr-1 px-2 z-10" style={{ flexGrow: 1 }}>
-            {/* ✅ Unresolved Tickets - Navigate to /warden/complaint (singular) */}
             {pendingComplaints.length > 0 && (
               <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -377,7 +386,6 @@ export default function WardenOverview() {
               </div>
             )}
 
-            {/* ✅ Pending Fee Overdues - Navigate to /warden/fees */}
             {feePending?.count > 0 && (
               <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -395,7 +403,6 @@ export default function WardenOverview() {
               </div>
             )}
 
-            {/* Unassigned Students Action */}
             {unassignedStudents > 0 && (
               <div className="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100/70 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -413,7 +420,6 @@ export default function WardenOverview() {
               </div>
             )}
 
-            {/* Room Allocation Logs */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h4 className="text-xs font-bold text-slate-700 truncate">Room Allocation Logs</h4>

@@ -1,10 +1,23 @@
 import axios from "axios";
 
+// ─── ENVIRONMENT-AWARE BASE URL ──────────────────────────────────────────────
+// Use environment variable in production, fallback to localhost in development
+const getBaseURL = () => {
+  // For production (Vercel), use the environment variable
+  if (import.meta.env?.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api`;
+  }
+  
+  // For development (local)
+  return "http://localhost:5000/api";
+};
+
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Important for cookies/sessions
 });
 
 let logoutHandlerInstance = null;
@@ -32,7 +45,7 @@ const isTokenExpiredLocal = (token) => {
   }
 };
 
-// 🚀 FIXED REQUEST INTERCEPTOR: Checks expiration BEFORE hitting the backend
+// ─── REQUEST INTERCEPTOR ────────────────────────────────────────────────────
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -68,7 +81,7 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Fallback response interceptor for server-side 401 changes
+// ─── RESPONSE INTERCEPTOR ──────────────────────────────────────────────────
 API.interceptors.response.use(
   (response) => response,
   (error) => {

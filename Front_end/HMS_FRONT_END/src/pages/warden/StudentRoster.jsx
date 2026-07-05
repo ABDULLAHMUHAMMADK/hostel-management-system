@@ -19,6 +19,14 @@ import {
 } from "recharts";
 import { io } from "socket.io-client";
 
+// ─── ENVIRONMENT-AWARE SOCKET URL ──────────────────────────────────────────
+const getSocketUrl = () => {
+  if (import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  return "http://localhost:5000";
+};
+
 // --- DARKER HIGH-FIDELITY SKELETON LOADING ---
 function StudentPageSkeleton() {
   const cardShadowStyle = { boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" };
@@ -145,8 +153,12 @@ export default function WardenStudents() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
+  // ─── ENVIRONMENT-AWARE SOCKET ────────────────────────────────────────────
   useEffect(() => {
-    const socket = io("http://localhost:5000");
+    const socketUrl = getSocketUrl();
+    const socket = io(socketUrl, {
+      withCredentials: true
+    });
     
     const handleUpdatePing = () => {
       fetchStudentRoster(false);
@@ -223,7 +235,6 @@ export default function WardenStudents() {
   }
 
   return (
-    /* PAGE LEVEL SCROLLING REMOVED (`overflow-hidden`) */
     <div className="h-[calc(100vh-100px)] flex flex-col space-y-3 font-sans overflow-hidden p-3 pt-1 bg-slate-50/20">
       
       <style dangerouslySetInnerHTML={{__html: `
@@ -238,7 +249,6 @@ export default function WardenStudents() {
           border-radius: 10px;
         }
         
-        /* 25% INITIAL CENTER BOUND BORDER EXTENDING HOVER GRAPHIC EFFECT */
         .extending-hover-card {
           position: relative;
         }
@@ -251,14 +261,13 @@ export default function WardenStudents() {
           width: 4px;
           height: 25%;
           border-radius: 0px 4px 4px 0px;
-          transition: height 0.35s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s ease;
+          transition: height 0.35s cubic-bezier(0.25, 1, 0.5, 1);
           z-index: 20;
         }
         .extending-hover-card:hover::before {
           height: 100%;
         }
         
-        /* THEMATIC ADAPTIVE CHROMATIC ANCHORS */
         .accent-indigo::before { background: linear-gradient(to bottom, #818cf8, #6366f1); }
         .accent-slate::before { background: linear-gradient(to bottom, #475569, #1e293b); }
         .accent-teal::before { background: linear-gradient(to bottom, #2dd4bf, #00A896); }
