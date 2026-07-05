@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import API, { injectLogoutTrigger } from "../api/client";
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -11,6 +12,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     setUser(null);
 
+    // Use window.location for reliable redirect
     if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
       window.location.href = "/login";
     }
@@ -45,8 +47,31 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
+  // ✅ NEW: Login with redirect (for production reliability)
+  const loginAndRedirect = async (email, password) => {
+    try {
+      const userData = await login(email, password);
+      
+      // Use window.location for reliable redirect in production
+      const role = userData.role;
+      if (role === "admin") {
+        window.location.href = "/admin";
+      } else if (role === "warden") {
+        window.location.href = "/warden";
+      } else if (role === "student") {
+        window.location.href = "/student";
+      } else {
+        window.location.href = "/";
+      }
+      
+      return userData;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginAndRedirect, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

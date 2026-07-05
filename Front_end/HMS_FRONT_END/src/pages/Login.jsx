@@ -9,11 +9,10 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { login, loginAndRedirect } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    // CRITICAL: Stop both default actions AND prevent event bubbling up to parent frames
     e.preventDefault();
     e.stopPropagation();
 
@@ -24,18 +23,19 @@ export default function Login() {
       const user = await login(email, password);
       console.log("Logged In User Identity Structure:", user);
 
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else if (user.role === "warden") {
-        navigate("/warden");
-      } else if (user.role === "student") {
-        navigate("/student");
+      // ✅ Use window.location for production reliability
+      const role = user.role;
+      if (role === "admin") {
+        window.location.href = "/admin";
+      } else if (role === "warden") {
+        window.location.href = "/warden";
+      } else if (role === "student") {
+        window.location.href = "/student";
       } else {
         setError("Unauthorized system entry access portal role.");
       }
     } catch (err) {
       console.error("Full Intercepted Axios Error Object:", err);
-      // Keeps your text input records preserved safely in state when an error hits!
       setError(
         err.response?.data?.message ||
           "Invalid authentication account credentials.",
@@ -67,7 +67,7 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Dynamic Error Box: Will render layout adjustments safely without wiping state */}
+        {/* Dynamic Error Box */}
         {error && (
           <div className="mb-4 p-3 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-lg">
             ⚠️ {error}
@@ -97,7 +97,7 @@ export default function Login() {
             </label>
             <input
               type="password"
-              autoComplete="new-password" // Changed to current-password to adhere to modern field behaviors
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
