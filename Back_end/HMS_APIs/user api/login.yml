@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:5000/api/users/login
+  url: https://feisty-wisdom-production-98ff.up.railway.app/api/users/login
   body:
     type: json
     data: |-

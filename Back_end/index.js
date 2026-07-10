@@ -31,7 +31,9 @@ const app = express();
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
       process.env.FRONTEND_URL, // Your Vercel URL (e.g., https://hms-frontend.vercel.app)
-      'https://your-frontend.vercel.app', // Add your actual URL here
+      'https://your-frontend.vercel.app',
+      'http://localhost:5173',
+      // Add your actual URL here
       // Add any other production URLs
     ]
   : [

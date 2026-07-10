@@ -27,6 +27,7 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import WardenPaymentSuccess from "./pages/warden/WardenPaymentSuccess";
 import WardenPaymentCancel from "./pages/warden/WardenPaymentCancel";
 import AdminNotice from "./pages/admin/AdminNotice";
+import AdminContacts from "./pages/admin/AdminContacts"; // ✅ IMPORT AdminContacts
 import { useEffect } from "react";
 
 // ─── PROTECTED ROUTE COMPONENT ──────────────────────────────────────────────
@@ -128,6 +129,7 @@ export default function App() {
             <Route path="billing" element={<AdminFeeHub />} />
             <Route path="profile" element={<AdminProfile />} />
             <Route path="notices" element={<AdminNotice />} />
+            <Route path="contacts" element={<AdminContacts />} /> {/* ✅ ADDED */}
           </Route>
 
           {/* Catch-All - Redirect to login */}

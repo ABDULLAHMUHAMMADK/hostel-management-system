@@ -5,7 +5,8 @@ import {
   LayoutDashboard,
   ChevronLeft,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  MessageSquare, // ✅ Import MessageSquare icon
 } from "lucide-react";
 
 export default function AdminSidebar({ isCollapsed, setIsCollapsed, closeMobile }) {
@@ -31,6 +32,11 @@ export default function AdminSidebar({ isCollapsed, setIsCollapsed, closeMobile 
       label: "Billing",
       path: "/admin/billing",
       icon: <CreditCard size={18} />,
+    },
+    {
+      label: "Contact Messages", // ✅ NEW
+      path: "/admin/contacts",   // ✅ NEW
+      icon: <MessageSquare size={18} />, // ✅ NEW
     },
   ];
 
